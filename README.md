@@ -2,10 +2,21 @@
 
 A "what should I order for takeout" quiz. Answer 13 questions (with branching
 skip logic), get one dish recommendation rendered as a printed thermal receipt,
-plus a nearby-restaurants map. There's also a chat mode that talks to an LLM
-instead of using the button quiz.
+plus a photo and a nearby-restaurants map. There's also a chat mode that talks
+to an LLM instead of using the button quiz.
 
 One HTML file. No build step, no accounts, no sign-in. Open it and it works.
+
+## Two variants
+
+- `diagnose-your-craving.html` — default, includes a dish photo (keyword-matched
+  via LoremFlickr, falls back to the dish's emoji if the image fails to load)
+- `diagnose-your-craving-no-image.html` — identical otherwise, with the photo
+  removed. Useful if the photo service is unreachable on your network — it was
+  briefly removed for exactly that reason before real-device testing showed it
+  resolving fine; see `HANDOFF.md` §12.
+
+The deploy workflow publishes both — see **Preview deploy** below.
 
 ## Run it
 
@@ -21,7 +32,7 @@ python3 -m http.server 8000
 
 ## What needs a backend
 
-Only chat. The quiz, scoring, receipt, map, and order history all run
+Only chat. The quiz, scoring, receipt, photo, map, and order history all run
 entirely in the browser with nothing configured.
 
 Chat needs a backend because the Anthropic API key must never sit in client
@@ -30,16 +41,20 @@ disables its input; nothing else is affected.
 
 ## Preview deploy
 
-`.github/workflows/preview.yml` publishes the app to GitHub Pages so you can
-open it on a real URL. It is **dispatch-only** — nothing deploys on its own:
+`.github/workflows/preview.yml` publishes both variants to GitHub Pages in one
+deploy, so you can open each on a real URL. It is **dispatch-only** — nothing
+deploys on its own:
 
 ```bash
 gh workflow run preview.yml --ref main
 ```
 
 Or Actions tab → **Preview** → **Run workflow**. It runs the pipeline sweep
-first and refuses to deploy if that fails; the deployed URL is printed in the
-job summary.
+first and refuses to deploy if that fails; both URLs are printed in the job
+summary:
+
+- `<pages-url>/` — the default, with photo
+- `<pages-url>no-image/` — the fallback, without photo
 
 One-time setup: **Settings → Pages → Source = "GitHub Actions"**. This repo is
 public, so Pages works on the free plan.
@@ -48,7 +63,8 @@ public, so Pages works on the free plan.
 
 | Path | What it is |
 |---|---|
-| `diagnose-your-craving.html` | The entire app — HTML, CSS, and JS in one file |
+| `diagnose-your-craving.html` | The entire app — HTML, CSS, and JS in one file, with photo |
+| `diagnose-your-craving-no-image.html` | Same app, photo removed |
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |
 | `.github/workflows/preview.yml` | Manual (`workflow_dispatch`) test + Pages preview deploy |

@@ -178,19 +178,6 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
 .result-actions .btn { flex: 1; min-width: 140px; text-align: center; }
 .result-actions a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; }
 
-.dish-photo-wrap {
-  width: 100%; aspect-ratio: 16/10; border-radius: 16px; overflow: hidden; margin-bottom: 14px;
-  position: relative; background: linear-gradient(135deg, rgba(255,62,127,0.15), rgba(46,230,200,0.15));
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-}
-.dish-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
-.dish-photo-fallback {
-  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-  font-size: 64px;
-}
-.dish-photo-fallback.show { display: flex; }
-.dish-photo.hide { display: none; }
-
 .map-section { width: 100%; margin-top: 16px; }
 .map-section-label { color: var(--yellow); font-size: 10.5px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; text-align: center; }
 .map-frame-wrap { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
@@ -284,10 +271,6 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
     </div>
 
     <div class="screen" id="result">
-      <div class="dish-photo-wrap" id="dishPhotoWrap">
-        <img id="dishPhoto" class="dish-photo" alt="">
-        <div class="dish-photo-fallback" id="dishPhotoFallback"></div>
-      </div>
       <div class="receipt-wrap">
         <div class="receipt" id="receiptBody"></div>
       </div>
@@ -917,23 +900,10 @@ function showResult(externalDish, chatReasoning) {
   document.getElementById('logBtn').disabled = false;
   document.getElementById('logBtn').textContent = '✅ I ORDERED THIS';
 
-  loadDishPhoto(dish);
   loadNearbyMap(dish);
 
   progressFill.style.width = '100%';
   showScreen('result');
-}
-
-/* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
-function loadDishPhoto(dish) {
-  const img = document.getElementById('dishPhoto');
-  const fallback = document.getElementById('dishPhotoFallback');
-  const keywords = dish.query.replace(' delivery near me', '').trim().split(/\s+/).join(',');
-  img.classList.remove('hide');
-  fallback.classList.remove('show');
-  fallback.textContent = dish.emoji;
-  img.onerror = () => { img.classList.add('hide'); fallback.classList.add('show'); };
-  img.src = `https://loremflickr.com/480/300/${encodeURIComponent(keywords)}?lock=${Date.now()}`;
 }
 
 /* ---------- NEARBY MAP (no-API-key embed, uses geolocation if allowed) ---------- */

@@ -37,7 +37,7 @@ Everything lives in one HTML file:
   6. `dishes` array (28 dishes)
   7. Quiz engine (`renderQuestion`, `selectSingle`, `toggleMulti`, `advance`)
   8. Dish selection (`passesDietary`, `pickDish`)
-  9. Result rendering (`showResult`, `loadNearbyMap`)
+  9. Result rendering (`showResult`, `loadDishPhoto`, `loadNearbyMap`)
   10. Init / event wiring at the bottom
 
 External dependencies:
@@ -537,28 +537,43 @@ blocks it) and chat end to end (needs a deployed function and a real key).
 
 ---
 
-## 12. Dish Photo — Removed
+## 12. Photo — Kept, With a No-Photo Fallback Deployed Alongside It
 
-The keyword-matched LoremFlickr photo (§5, §10.2, §11.4) is gone. Confirmed live
-in a real browser: it loaded, but returned generic/unrelated stock photos rather
-than anything resembling the actual dish — the "not hand-curated" caveat from §5
-in practice, not a network or sandbox issue.
+The LoremFlickr photo (§5) was briefly removed after appearing to return
+generic/unrelated stock images when checked from a desktop browser. Before that
+removal reached `main`, real-device testing (a phone, repeated across several
+runs) showed the photo resolving and matching correctly. That reopened the
+question the sandbox could never settle on its own (§10.2, §11.4): whether the
+failure was the photo service or the network path checking it. The phone
+results say network path — so the photo is back as the default, and the
+removal is kept as a second, explicitly no-photo variant rather than discarded.
 
-**What was considered and why it was deferred rather than built:**
+**Two files now ship from this repo:**
 
-- **A real photo of the specific restaurant/dish** (e.g. via Google Places
-  Photos) needs a Google Cloud project with billing enabled and an API key
-  shipped in the page — a real ongoing cost and a dependency the whole MVP
-  pass (§11) was built to avoid. Also imprecise: Places would return a photo
-  from whichever nearby restaurant it happens to match, not necessarily one
-  that serves the recommended dish, and results would vary by the user's
-  location rather than being fixed per dish.
-- **Hand-curated photos** (one fixed, accurate URL per dish, no API key) was
-  the other option on the table and remains the natural next step if a photo
-  is wanted later — see §7 item 3, still open.
+- `diagnose-your-craving.html` — the default, with the LoremFlickr photo intact
+  exactly as documented in §5.
+- `diagnose-your-craving-no-image.html` — a second copy with `dishPhotoWrap`/
+  `dishPhoto`/`dishPhotoFallback` and `loadDishPhoto()` removed, identical
+  otherwise. Confirmed byte-identical to the default file outside the photo
+  block (`questions`, `dishes`, scoring, map, chat — all unchanged) via `diff`
+  before merging, and confirmed with a headless Chromium run through a full
+  quiz on both.
 
-For now: no photo at all. `dishPhotoWrap`/`dishPhoto`/`dishPhotoFallback`
-(markup + CSS) and `loadDishPhoto()` are deleted; `showResult()` no longer
-calls it. The dish emoji in the receipt's title line (`r-title`) is the only
-visual identifier left. Nothing else on the result screen changed — map,
-receipt, and history are unaffected.
+**The deploy workflow (`.github/workflows/preview.yml`) now publishes both** to
+separate paths in the same Pages deploy:
+- `/` and `/diagnose-your-craving.html` — the default, with photo
+- `/no-image/` and `/diagnose-your-craving-no-image.html` — the fallback
+
+One dispatch, one Pages deploy, two live URLs — no second repo or second Pages
+site needed. `tests/pipeline.test.mjs` only reads the default file by name
+(unchanged), which is correct: the dish database and pipeline are identical
+between the two, so testing one tests both.
+
+**Maintenance note for whoever edits the dish database, questions, or scoring
+next:** the two HTML files will drift out of sync if only one is edited. Until
+this is scripted (e.g. generating the no-image file from the default via the
+same kind of extraction `tests/pipeline.test.mjs` already does), any change to
+`questions`, `dishes`, or the scoring/filter functions needs to be applied to
+both files by hand — or re-derive `diagnose-your-craving-no-image.html` from
+the current default by re-deleting the photo block, rather than editing it
+independently.
