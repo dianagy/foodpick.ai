@@ -716,3 +716,81 @@ the feature working with zero backend, consistent with the rest of the app.
   entirely and goes straight to `#result` with its own "WHY THIS PICK"
   reasoning from the model — the craving-analysis stage is quiz-only by
   design, since chat already produces its own explanation conversationally.
+
+## 15. Answer-space sweep for the craving-analysis layer — findings
+
+`tests/pipeline.test.mjs` only ever checked the dish-filter pipeline
+(`pickDish()`): no empty pools, no hard-filter violations, every dish
+reachable. It has no coverage of the craving-analysis layer added in
+section 14 — `buildCravingProfile()` / `computeCravingAnalysis()` — so a new
+`tests/craving-analysis.test.mjs` sweeps 3,000 random answer combinations
+plus 4 hand-picked edge cases (breakfast+sweet, every dietary filter at
+once, a zero-signal bag, budget=1+hearty) through the analysis functions and
+asserts the output stays sane: match % in its stated 72–97 band, no
+`undefined`/`NaN`/`null` leaking into any user-facing string, no empty or
+duplicate `dontWant` entries, no alternate that's a duplicate of the winner
+or of another alternate. Run it with `node tests/craving-analysis.test.mjs`.
+
+**No crashes or malformed output turned up** across the full sweep — the
+analysis layer holds up structurally. But the run also prints distribution
+stats (alternates-length spread, match % spread, archetype/richness
+frequency), and three real, reproducible issues came out of reading them:
+
+**1. Alternates silently disappear on a specific, common combo.**
+`alternates.length` tracks `getEligiblePool().length` exactly — 0
+alternates when the pool has 1 dish, 1 alternate when it has 2. Across the
+sweep, **10.2% of runs got fewer than 2 alternates (5.6% got zero)**. The
+cause: the breakfast and dessert-heavy sub-pools only have 5 dishes each,
+and within each, only **one** dish is gluten-free (Shakshuka for breakfast,
+Mochi Ice Cream Platter for dessert):
+
+| pool | budget | cheese-free | gluten-free | dairy-free |
+|---|---|---|---|---|
+| breakfast (5) | 4 of 5 are budget 1 | 1 of 5 | **1 of 5** | 0 of 5 |
+| dessert (5) | all 5 are budget 1 | all 5 | **1 of 5** | 0 of 5 |
+
+So `meal: breakfast` or `craving: sweet` combined with `dietary:
+glutenFree` deterministically narrows the pool to exactly one dish, every
+time, regardless of any other answer. Two consequences: the Alternatives
+section vanishes (the code correctly hides it rather than rendering
+something broken, so this isn't a crash) and, more importantly, there's no
+personalization left at all in that pool — a gluten-free breakfast/dessert
+craving always recommends the same single dish. `noCheese` has the same
+effect on breakfast at budget tier 1 specifically (only Fluffy Pancakes
+qualifies). `dairyFree` doesn't hit this because *no* dish in either
+sub-pool is dairy-free, so the narrow-to-empty fallback keeps the wider
+pool instead — the bug only bites when a filter matches **exactly one**
+dish, not zero.
+  - Not fixed here — this is a data-coverage gap (the breakfast/dessert
+    sub-databases are thin relative to dietary variety), not a logic bug.
+    Fixing it means either adding a gluten-free option to each sub-pool or
+    accepting the gap and being explicit about it in the UI (e.g. not
+    showing an "Alternatives" label to expand toward if there's nothing to
+    show — already the current behavior — perhaps also softening the
+    "why this matches" framing when the pool was this constrained).
+
+**2. Match % clusters at its own floor.** 25.4% of runs landed at exactly
+72% — the clamp's lower bound — meaning the raw formula
+(`0.55 + tagRatio*0.35 + sizeBonus`) produces a sub-72 value more often
+than the "believable 72–97 band" comment intended. The number reads as
+precise/data-driven but for a quarter of results it's just the floor,
+independent of how good or bad the actual match is. Worth revisiting the
+0.55 baseline or the band width if the match % is meant to carry real
+signal rather than just avoid extreme numbers.
+
+**3. Archetype and richness both skew toward "comfort".** Of the 8 most
+common archetypes, 6 were some "___ Comfort Seeker" variant, and
+"Richness: High — indulgent and comforting" showed up in 44.6% of runs vs.
+10.6% for "Light and fresh". Root cause: the `comfort` tag can be
+contributed by **two** different single-select questions (`occasion`:
+"Surviving a rough day", and `vibe`: "Zero energy" / "Comfort mode" — two
+of its five options), giving it roughly double the accumulation chance of
+any other single mood/richness tag in `bag`. This confirms and quantifies
+the "small vocabulary, will repeat" caveat already flagged in section 14 —
+now with numbers. If broader variety matters, the fix is narrow: stop
+`occasion` and `vibe` from both feeding the same `comfort` tag (e.g. give
+`vibe`'s comfort options a distinct tag from `occasion`'s), not a rewrite
+of the mood-word system.
+
+None of this is fixed in this pass — flagged for a decision on whether it's
+worth spending on before the next round of changes.

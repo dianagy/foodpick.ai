@@ -66,6 +66,7 @@ public, so Pages works on the free plan.
 | `BRANDING.md` | Identity, color, type, voice, and layout reference |
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |
+| `tests/craving-analysis.test.mjs` | Sweeps the answer space against the craving-analysis layer (profile, match %, alternates) |
 | `.github/workflows/preview.yml` | Manual (`workflow_dispatch`) test + Pages preview deploy |
 | `HANDOFF.md` | Design history, scoring rationale, and open items |
 
@@ -73,12 +74,17 @@ public, so Pages works on the free plan.
 
 ```bash
 node tests/pipeline.test.mjs
+node tests/craving-analysis.test.mjs
 ```
 
-5,000 random playthroughs asserting the filter pipeline never returns an empty
-pool or a dish violating a hard filter, and that every dish stays reachable. It
-extracts the dish database and `pickDish()` straight out of the HTML, so there's
-no second copy to drift.
+`pipeline.test.mjs` runs 5,000 random playthroughs asserting the filter
+pipeline never returns an empty pool or a dish violating a hard filter, and
+that every dish stays reachable. `craving-analysis.test.mjs` sweeps the same
+answer space through the craving-profile layer (section 14 of `HANDOFF.md`) —
+match %, archetype text, alternates — asserting nothing malformed leaks into
+a user-facing string; see `HANDOFF.md` section 15 for real (non-crashing)
+issues it surfaced. Both extract their logic straight out of the HTML, so
+there's no second copy to drift.
 
 ## Enabling chat
 

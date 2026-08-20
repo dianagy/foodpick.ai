@@ -38,6 +38,9 @@ jobs:
       - name: Run filter-pipeline sweep
         run: node tests/pipeline.test.mjs
 
+      - name: Run craving-analysis sweep
+        run: node tests/craving-analysis.test.mjs
+
   deploy:
     name: Deploy to Pages
     needs: test
