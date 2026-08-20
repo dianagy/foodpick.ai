@@ -29,6 +29,8 @@ const source = [
   extractBlock('const questions = [', '];'),
   extractBlock('const dishes = [', '];'),
   extractBlock('function passesDietary(d) {', '}'),
+  extractBlock('function getEligiblePool() {', '}'),
+  extractBlock('function scorePool(pool) {', '}'),
   extractBlock('function pickDish() {', '}'),
   // Lexical declarations don't attach to the vm context object on their own.
   'globalThis.questions = questions; globalThis.dishes = dishes; globalThis.pickDish = pickDish;',

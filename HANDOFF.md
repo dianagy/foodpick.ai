@@ -643,3 +643,76 @@ sandbox/harness flakiness under repeated Chromium launches rather than an app
 bug, but this was **not fully run to a clean end-to-end pass** before this
 doc was written. Confirming a full quiz run through the actual deployed
 preview URL is the first thing to do after this lands.
+
+## 14. Craving Analysis stage (POC) — quiz → analysis → profile → recommendation
+
+Added a product layer between the last quiz question and the dish
+recommendation, per spec: *Quiz → craving analysis → craving profile →
+recommendation → find nearby*. Previously the quiz answers went straight into
+`pickDish()` and onto the receipt with no explanation of what the app thought
+you wanted. That's now a two-screen bridge:
+
+1. **`#loading` (repurposed)** — was a plain 3-dot spinner labeled "Finding
+   your pick"; now shows a staggered checklist ("Hunger level detected ✓",
+   "Flavour preferences detected ✓", …, "Calculating your best match…") over
+   ~2.9s (`ANALYSIS_STEPS` / `ANALYSIS_STEP_MS` / `ANALYSIS_TOTAL_MS`), purely
+   presentational pacing.
+2. **`#profile` (new)** — the "craving profile": an archetype name (e.g.
+   "Japanese Heat Chaser"), a match percentage, a one-line synthesis, four
+   detected attributes (Hunger / Richness / Flavour / Direction), and a
+   "what you probably don't want" list. A button continues to the existing
+   `#result` screen, now labeled "🎯 WHAT YOU ACTUALLY WANT" with a "why this
+   matches" line and up to two alternate dishes.
+
+**Deliberately no LLM involved.** Chat is paused for now (see §9), and this
+stage doesn't need it anyway — every field in the profile is derived
+deterministically from the same signals `pickDish()` already scores (the
+`bag` tag tally, `desiredSize`, `cravingValue`, `dietaryFilters`). This keeps
+the feature working with zero backend, consistent with the rest of the app.
+
+**Implementation:**
+- `pickDish()` was split into `getEligiblePool()` (the filter pipeline,
+  unchanged) and `scorePool(pool)` (the tag-overlap scoring, now returning
+  the full pool sorted descending instead of just the winner). `pickDish()`
+  is now `scorePool(getEligiblePool())` + the same tie-break random pick as
+  before — behavior-identical, verified by the pipeline sweep still passing
+  on both variants.
+- `computeCravingAnalysis()` calls `pickDish()` once for the winner, plus a
+  second `scorePool` pass to pull the next two distinct-name dishes as
+  alternates, then builds the profile via `buildCravingProfile(winner,
+  scored)`.
+- `buildCravingProfile()` heuristics, all tag-tally based:
+  - **Hunger** ← `desiredSize` (light/medium/hearty → a label).
+  - **Richness** ← tally of `RICH_TAGS` (creamy, cheesy, comfort, treat,
+    crispy, juicy) vs `LIGHT_TAGS` (fresh, healthy, crunchy) in `bag`.
+  - **Flavour** ← which of `FLAVOUR_TAGS` (spicy, savory, sweet, bold) are
+    present in `bag`, ranked by count.
+  - **Direction** ← dominant cuisine(s) among the top 5 scored dishes, not
+    just the winner's own cuisine, so it reads as a "lean" rather than a
+    single data point.
+  - **Archetype** ← top cuisine + a mood word from `MOOD_WORDS`, matched
+    against whichever mood tag (comfort/treat/bold/spicy/healthy/fresh/sweet)
+    has the highest count in `bag`.
+  - **Match %** ← `(0.55 + tagRatio*0.35 + sizeBonus)`, where `tagRatio` is
+    the fraction of the winning dish's own tags that appear in `bag`, clamped
+    to 72–97%. This is a heuristic confidence number for product feel, not a
+    statistical claim — worth a comment if this becomes user-facing beyond a
+    POC.
+  - **"What you probably don't want"** ← contrast rules keyed off richness/
+    flavour/size (e.g. high richness → "something bland or watery"; hearty
+    appetite → "a tiny portion that won't fill you up").
+- `tests/pipeline.test.mjs` now also extracts `getEligiblePool` and
+  `scorePool` (pickDish depends on them) — still passes, 28/28 dishes
+  reachable on both variants.
+
+**Not done / open items:**
+- No browser walkthrough was run in this pass — per the standing instruction
+  to stop sandbox-testing this app, verification should happen against a
+  live deployed preview URL instead.
+- The archetype/mood-word vocabulary is small (7 moods) and dish-tag-driven;
+  it'll repeat across quiz runs with similar answers. Fine for a POC, worth
+  revisiting if this becomes permanent.
+- If chat comes back online (§9/§13), the chat path still bypasses this
+  entirely and goes straight to `#result` with its own "WHY THIS PICK"
+  reasoning from the model — the craving-analysis stage is quiz-only by
+  design, since chat already produces its own explanation conversationally.

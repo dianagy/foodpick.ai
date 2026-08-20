@@ -132,17 +132,29 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 
 #loading { align-items: center; justify-content: center; }
 .loading-inner { text-align: center; }
-.loading-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
-.loading-dots span {
-  width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
-  animation: loadingPulse 1.1s infinite ease-in-out;
-}
-.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
-@keyframes loadingPulse { 0%, 60%, 100% { transform: scale(1); opacity: 0.4; } 30% { transform: scale(1.3); opacity: 1; } }
-.loading-label { font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink); }
+.loading-brain { font-size: 30px; margin-bottom: 10px; }
+.analysis-heading { color: var(--accent); font-size: 11px; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 20px; }
+.analysis-signals { display: inline-flex; flex-direction: column; gap: 10px; text-align: left; }
+.analysis-signal { font-size: 13px; color: var(--muted); opacity: 0; animation: rIn 0.35s ease forwards; display: flex; align-items: center; gap: 8px; }
+.analysis-signal.done { color: var(--ink); }
+.analysis-signal .check { color: var(--accent); font-weight: 600; }
+
+#profile { align-items: stretch; }
+.profile-archetype { font-family: 'Fraunces', serif; font-weight: 400; font-size: 23px; line-height: 1.25; margin-top: 2px; }
+.profile-match { display: inline-block; background: var(--pill-bg); color: var(--pill-text); font-size: 11px; font-weight: 600; letter-spacing: 0.3px; padding: 4px 12px; border-radius: 999px; margin: 8px 0 12px; }
+.profile-summary { font-size: 13.5px; line-height: 1.6; color: var(--ink); margin-bottom: 20px; }
+.profile-section-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }
+.profile-attrs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+.profile-attr { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; }
+.profile-attr .pa-icon { font-size: 17px; flex-shrink: 0; }
+.profile-attr .pa-label { font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.profile-attr .pa-value { font-size: 13px; color: var(--ink); font-weight: 500; }
+.profile-dontwant { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.profile-dontwant-item { font-size: 13px; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; }
+.profile-dontwant-item::before { content: '✕'; color: var(--accent); font-size: 11px; margin-top: 2px; }
 
 #result { align-items: center; }
+.result-kicker { color: var(--accent); font-size: 10.5px; letter-spacing: 1.3px; font-weight: 600; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
 .receipt-wrap { width: 100%; }
 .receipt {
   background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif; width: 100%;
@@ -168,6 +180,13 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .r-pill { font-size: 10px; background: var(--pill-bg); color: var(--pill-text); padding: 3px 10px; border-radius: 999px; }
 .r-reasoning-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-top: 12px; margin-bottom: 4px; }
 .r-reasoning { font-size: 12.5px; line-height: 1.6; color: var(--muted); font-style: italic; }
+
+.alt-section { width: 100%; margin-top: 16px; }
+.alt-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+.alt-item { background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
+.alt-item .alt-emoji { font-size: 18px; }
+.alt-item .alt-name { font-family: 'Fraunces', serif; font-size: 13.5px; margin-bottom: 2px; }
+.alt-item .alt-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 
 .result-actions { display: flex; gap: 10px; margin-top: 18px; width: 100%; flex-wrap: wrap; justify-content: center; }
 .result-actions .btn { flex: 1; min-width: 140px; text-align: center; }
@@ -273,12 +292,31 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 
     <div class="screen" id="loading">
       <div class="loading-inner">
-        <div class="loading-dots"><span></span><span></span><span></span></div>
-        <div class="loading-label">Finding your pick</div>
+        <div class="loading-brain">🧠</div>
+        <div class="analysis-heading">Analysing your craving</div>
+        <div class="analysis-signals" id="analysisSignals"></div>
+      </div>
+    </div>
+
+    <div class="screen" id="profile">
+      <div class="q-label">YOUR CRAVING PROFILE</div>
+      <div class="profile-archetype" id="profileArchetype"></div>
+      <div class="profile-match" id="profileMatch"></div>
+      <div class="profile-summary" id="profileSummary"></div>
+
+      <div class="profile-section-label">What we detected</div>
+      <div class="profile-attrs" id="profileAttrs"></div>
+
+      <div class="profile-section-label">What you probably don't want</div>
+      <div class="profile-dontwant" id="profileDontWant"></div>
+
+      <div class="result-actions" style="margin-top:18px;">
+        <button class="btn" id="profileContinueBtn">🎯 SEE YOUR MATCH</button>
       </div>
     </div>
 
     <div class="screen" id="result">
+      <div class="result-kicker" id="resultKicker" style="display:none;">🎯 WHAT YOU ACTUALLY WANT</div>
       <div class="dish-photo-wrap" id="dishPhotoWrap">
         <img id="dishPhoto" class="dish-photo" alt="">
         <div class="dish-photo-fallback" id="dishPhotoFallback"></div>
@@ -287,7 +325,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
         <div class="receipt" id="receiptBody"></div>
       </div>
       <div class="result-actions">
-        <a class="btn" id="findBtn" target="_blank" rel="noopener">📍 FIND IT NEAR ME</a>
+        <a class="btn" id="findBtn" target="_blank" rel="noopener">📍 FIND THIS NEAR ME</a>
         <button class="btn secondary" id="logBtn">✅ I ORDERED THIS</button>
       </div>
       <div class="log-form" id="logForm">
@@ -295,6 +333,11 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
         <button class="btn small" id="saveLogBtn">SAVE TO HISTORY</button>
       </div>
       <div class="saved-note" id="savedNote" style="display:none;">Saved ✓ — this'll help sharpen future suggestions.</div>
+
+      <div class="alt-section" id="altSection" style="display:none;">
+        <div class="alt-label">Alternatives</div>
+        <div id="altList"></div>
+      </div>
 
       <div class="map-section">
         <div class="map-section-label" id="mapSectionLabel">🍽️ NEARBY SPOTS SERVING THIS</div>
@@ -621,6 +664,7 @@ let dessertChoice = null;
 let multiSelected = [];
 let history = [];
 let currentResultDish = null;
+let pendingAnalysis = null;
 let chatMessages = []; // [{role: 'user'|'assistant', content: '...'}]
 let chatBusy = false;
 
@@ -796,7 +840,11 @@ function advance() {
     renderQuestion();
   } else {
     showScreen('loading');
-    setTimeout(() => { showResult(); }, 2000);
+    renderAnalysisSignals();
+    setTimeout(() => {
+      pendingAnalysis = computeCravingAnalysis();
+      showCravingProfile(pendingAnalysis.profile);
+    }, ANALYSIS_TOTAL_MS);
   }
 }
 
@@ -815,7 +863,7 @@ function passesDietary(d) {
   return true;
 }
 
-function pickDish() {
+function getEligiblePool() {
   let pool = dishes.slice();
 
   // 1. Breakfast gate — runs first since it changes the whole eligible pool
@@ -844,14 +892,20 @@ function pickDish() {
     if (narrowed.length > 0) pool = narrowed;
   }
 
-  // 5. Score by tag overlap (vibe/occasion/craving/texture/format all live in the same bag)
+  return pool;
+}
+
+// Score by tag overlap (vibe/occasion/craving/texture/format all live in the same bag).
+// Sorted descending so callers can read off both the winner and the runner-up dishes —
+// the craving-analysis stage needs the full ranking, not just the top pick.
+function scorePool(pool) {
   const dishHistCount = {}, cuisineHistCount = {};
   history.forEach(h => {
     dishHistCount[h.dish] = (dishHistCount[h.dish] || 0) + 1;
     cuisineHistCount[h.cuisine] = (cuisineHistCount[h.cuisine] || 0) + 1;
   });
 
-  const scored = pool.map(d => {
+  return pool.map(d => {
     const rawTagScore = d.tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
     // Normalize by tag count so dishes with more tags don't win purely on volume
     let score = d.tags.length ? rawTagScore / d.tags.length : 0;
@@ -859,17 +913,166 @@ function pickDish() {
     score += (dishHistCount[d.name] || 0) * 0.3;
     score += (cuisineHistCount[d.cuisine] || 0) * 0.15;
     return { dish: d, score };
-  });
+  }).sort((a, b) => b.score - a.score);
+}
 
-  const bestScore = Math.max(...scored.map(s => s.score));
+function pickDish() {
+  const scored = scorePool(getEligiblePool());
+  const bestScore = scored[0].score;
   const topCandidates = scored.filter(s => s.score >= bestScore - 0.001).map(s => s.dish);
   return topCandidates[Math.floor(Math.random() * topCandidates.length)];
 }
 
-function showResult(externalDish, chatReasoning) {
+/* ---------- CRAVING ANALYSIS ----------
+   Turns the same signals pickDish() already scores into a human-readable
+   "craving profile" — no LLM involved, this is all derived from the quiz
+   answers already collected in `bag` and the other state vars. */
+const RICH_TAGS = ['creamy', 'cheesy', 'comfort', 'treat', 'crispy', 'juicy'];
+const LIGHT_TAGS = ['fresh', 'healthy', 'crunchy'];
+const FLAVOUR_TAGS = ['spicy', 'savory', 'sweet', 'bold'];
+const MOOD_WORDS = [
+  { tag: 'comfort', word: 'Comfort Seeker' },
+  { tag: 'treat', word: 'Indulgence Seeker' },
+  { tag: 'bold', word: 'Bold Flavor Chaser' },
+  { tag: 'spicy', word: 'Heat Chaser' },
+  { tag: 'healthy', word: 'Freshness Seeker' },
+  { tag: 'fresh', word: 'Freshness Seeker' },
+  { tag: 'sweet', word: 'Sweet Tooth' },
+];
+const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };
+
+function tallyTags(tags) {
+  return tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
+}
+
+function buildCravingProfile(winner, scored) {
+  const hunger = HUNGER_LABELS[desiredSize] || 'A proper meal';
+
+  const richCount = tallyTags(RICH_TAGS);
+  const lightCount = tallyTags(LIGHT_TAGS);
+  let richness;
+  if (richCount - lightCount >= 2) richness = 'High — indulgent and comforting';
+  else if (richCount > lightCount) richness = 'Medium to high';
+  else if (lightCount > richCount) richness = 'Light and fresh';
+  else richness = 'Balanced';
+
+  const flavourPresent = FLAVOUR_TAGS.filter(t => bag[t] > 0).sort((a, b) => (bag[b] || 0) - (bag[a] || 0));
+  const flavourLabel = flavourPresent.length
+    ? flavourPresent.slice(0, 3).map(t => t[0].toUpperCase() + t.slice(1)).join(' · ')
+    : 'Balanced, no strong lean';
+
+  // Direction: the dominant cuisine among the top-scoring dishes, not just the winner —
+  // shows the general lean even when one specific dish narrowly took the pick.
+  const cuisineCount = {};
+  scored.slice(0, 5).forEach(s => { cuisineCount[s.dish.cuisine] = (cuisineCount[s.dish.cuisine] || 0) + 1; });
+  const rankedCuisines = Object.entries(cuisineCount).sort((a, b) => b[1] - a[1]).map(([c]) => c);
+  const direction = rankedCuisines.slice(0, 2).join(' / ') || winner.cuisine;
+
+  let moodWord = 'Flavor Seeker', bestMoodCount = 0;
+  MOOD_WORDS.forEach(({ tag, word }) => {
+    const c = bag[tag] || 0;
+    if (c > bestMoodCount) { bestMoodCount = c; moodWord = word; }
+  });
+  const archetype = `${rankedCuisines[0] || winner.cuisine} ${moodWord}`;
+
+  // Match %: grounded in how much of the winning dish's own tags the answers actually hit,
+  // kept in a believable 72-97 band rather than a raw ratio that could read as 20% or 100%.
+  const matchedTags = winner.tags.filter(t => bag[t] > 0);
+  const tagRatio = winner.tags.length ? matchedTags.length / winner.tags.length : 0;
+  const sizeBonus = (desiredSize && winner.size === desiredSize) ? 0.12 : 0;
+  const matchPct = Math.max(72, Math.min(97, Math.round((0.55 + tagRatio * 0.35 + sizeBonus) * 100)));
+
+  const dontWant = [];
+  if (richness.startsWith('High')) dontWant.push("Something bland or watery");
+  if (richness === 'Light and fresh') dontWant.push('Something greasy or overly heavy');
+  if (flavourPresent.includes('spicy') || flavourPresent.includes('bold')) dontWant.push('Plain food with no real flavour');
+  if (desiredSize === 'hearty') dontWant.push("A tiny portion that won't fill you up");
+  if (desiredSize === 'light') dontWant.push('An overly heavy, stuffed-full meal');
+  if (!dontWant.length) dontWant.push('Anything that misses what you asked for');
+
+  const summary = `You're craving ${hunger.toLowerCase()} with ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour — not just something to fill space.`;
+  const why = `You want ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour, and ${winner.name} brings ${matchedTags.length ? matchedTags.slice(0, 3).join(', ') : 'exactly that'}.`;
+
+  return {
+    archetype, matchPct, summary, why,
+    attrs: [
+      { icon: '🍽', label: 'Hunger', value: hunger },
+      { icon: '🧀', label: 'Richness', value: richness },
+      { icon: '👅', label: 'Flavour', value: flavourLabel },
+      { icon: '🌍', label: 'Direction', value: direction },
+    ],
+    dontWant: dontWant.slice(0, 3),
+  };
+}
+
+function computeCravingAnalysis() {
+  const winner = pickDish();
+  const scored = scorePool(getEligiblePool());
+
+  const alternates = [];
+  for (const s of scored) {
+    if (s.dish.name === winner.name) continue;
+    if (alternates.some(a => a.name === s.dish.name)) continue;
+    alternates.push(s.dish);
+    if (alternates.length === 2) break;
+  }
+
+  return { winner, alternates, profile: buildCravingProfile(winner, scored) };
+}
+
+const ANALYSIS_STEP_MS = 380;
+const ANALYSIS_STEPS = [
+  { text: 'Hunger level detected', done: true },
+  { text: 'Comfort requirement detected', done: true },
+  { text: 'Flavour preferences detected', done: true },
+  { text: 'Cuisine preferences detected', done: true },
+  { text: "Eliminating foods you probably don't want…", done: false },
+  { text: 'Calculating your best match…', done: false },
+];
+const ANALYSIS_TOTAL_MS = ANALYSIS_STEPS.length * ANALYSIS_STEP_MS + 700;
+
+function renderAnalysisSignals() {
+  document.getElementById('analysisSignals').innerHTML = ANALYSIS_STEPS.map((step, i) => `
+    <div class="analysis-signal${step.done ? ' done' : ''}" style="animation-delay:${(i * ANALYSIS_STEP_MS / 1000).toFixed(2)}s">
+      ${step.done ? '<span class="check">✓</span>' : ''}<span>${esc(step.text)}</span>
+    </div>`).join('');
+}
+
+function showCravingProfile(profile) {
+  document.getElementById('profileArchetype').textContent = profile.archetype;
+  document.getElementById('profileMatch').textContent = `${profile.matchPct}% match`;
+  document.getElementById('profileSummary').textContent = profile.summary;
+
+  document.getElementById('profileAttrs').innerHTML = profile.attrs.map(a => `
+    <div class="profile-attr">
+      <span class="pa-icon">${esc(a.icon)}</span>
+      <div><div class="pa-label">${esc(a.label)}</div><div class="pa-value">${esc(a.value)}</div></div>
+    </div>`).join('');
+
+  document.getElementById('profileDontWant').innerHTML = profile.dontWant
+    .map(d => `<div class="profile-dontwant-item">${esc(d)}</div>`).join('');
+
+  showScreen('profile');
+}
+
+function showResult(externalDish, chatReasoning, analysis) {
   const dish = externalDish || pickDish();
   currentResultDish = dish;
-  const fromChat = !!externalDish;
+  const fromChat = !!externalDish && !analysis;
+
+  document.getElementById('resultKicker').style.display = analysis ? 'block' : 'none';
+
+  const altSection = document.getElementById('altSection');
+  if (analysis && analysis.alternates.length) {
+    document.getElementById('altList').innerHTML = analysis.alternates.map(d => `
+      <div class="alt-item">
+        <span class="alt-emoji">${esc(d.emoji)}</span>
+        <div><div class="alt-name">${esc(d.name)}</div><div class="alt-desc">${esc(d.desc)}</div></div>
+      </div>`).join('');
+    altSection.style.display = 'block';
+  } else {
+    altSection.style.display = 'none';
+  }
 
   const usedHistory = history.some(h => h.dish === dish.name || h.cuisine === dish.cuisine);
 
@@ -877,10 +1080,18 @@ function showResult(externalDish, chatReasoning) {
     ? `<div class="r-line r-pills">${dish.tags.slice(0, 4).map(t => `<span class="r-pill">${esc(t)}</span>`).join('')}</div>`
     : '';
 
-  const reasoningHtml = fromChat
-    ? [`<div class="r-line r-reasoning-label">WHY THIS PICK</div>`,
-       `<div class="r-line r-reasoning">${esc(chatReasoning || 'Based on what you told me.')}</div>`]
-    : [];
+  let reasoningHtml = [];
+  if (analysis) {
+    reasoningHtml = [
+      `<div class="r-line r-reasoning-label">WHY THIS MATCHES</div>`,
+      `<div class="r-line r-reasoning">${esc(analysis.profile.why)}</div>`
+    ];
+  } else if (fromChat) {
+    reasoningHtml = [
+      `<div class="r-line r-reasoning-label">WHY THIS PICK</div>`,
+      `<div class="r-line r-reasoning">${esc(chatReasoning || 'Based on what you told me.')}</div>`
+    ];
+  }
 
   const lines = [
     pillsHtml,
@@ -959,7 +1170,7 @@ function loadNearbyMap(dish) {
 function resetState() {
   qIndex = 0; bag = {}; picks = []; desiredSize = null; mealTime = null; cravingValue = null;
   budgetFilter = null; dietaryFilters = []; sideChoice = null;
-  dessertChoice = null; multiSelected = [];
+  dessertChoice = null; multiSelected = []; pendingAnalysis = null;
 }
 
 function startQuiz() {
@@ -969,6 +1180,11 @@ function startQuiz() {
 }
 
 document.getElementById('startQuizBtn').onclick = startQuiz;
+
+document.getElementById('profileContinueBtn').onclick = () => {
+  if (!pendingAnalysis) return;
+  showResult(pendingAnalysis.winner, null, pendingAnalysis);
+};
 
 document.getElementById('retakeBtn').onclick = () => {
   progressWrap.style.display = 'none';
