@@ -1,33 +1,31 @@
 # foodpick.ai
 
-A "what should I order for takeout" quiz. Answer 13 questions (with branching
-skip logic), get one dish recommendation rendered as a printed thermal receipt,
-plus a photo and a nearby-restaurants map. There's also a chat mode that talks
-to an LLM instead of using the button quiz.
+"The last 'idk what to eat' you'll ever type." A quick 13-question quiz (or a
+quick chat instead), one dish recommendation, a nearby-restaurants map. See
+`BRANDING.md` for the identity/visual system and `HANDOFF.md` for architecture.
 
 One HTML file. No build step, no accounts, no sign-in. Open it and it works.
 
 ## Two variants
 
-- `diagnose-your-craving.html` — default, includes a dish photo (keyword-matched
-  via LoremFlickr, falls back to the dish's emoji if the image fails to load)
-- `diagnose-your-craving-no-image.html` — identical otherwise, with the photo
-  removed. Useful if the photo service is unreachable on your network — it was
-  briefly removed for exactly that reason before real-device testing showed it
-  resolving fine; see `HANDOFF.md` §12.
+- `foodpick-ai.html` — default, includes a dish photo (keyword-matched via
+  LoremFlickr, falls back to the dish's emoji if the image fails to load)
+- `foodpick-ai-no-image.html` — identical otherwise, with the photo removed.
+  Useful if the photo service is unreachable on your network; see `HANDOFF.md`
+  §12 for why this fallback exists.
 
 The deploy workflow publishes both — see **Preview deploy** below.
 
 ## Run it
 
-Open `diagnose-your-craving.html` in a browser. That's it.
+Open `foodpick-ai.html` in a browser. That's it.
 
 For a closer match to production — geolocation is blocked on `file://`, so the
 map can only show its generic fallback there:
 
 ```bash
 python3 -m http.server 8000
-# http://localhost:8000/diagnose-your-craving.html
+# http://localhost:8000/foodpick-ai.html
 ```
 
 ## What needs a backend
@@ -63,8 +61,9 @@ public, so Pages works on the free plan.
 
 | Path | What it is |
 |---|---|
-| `diagnose-your-craving.html` | The entire app — HTML, CSS, and JS in one file, with photo |
-| `diagnose-your-craving-no-image.html` | Same app, photo removed |
+| `foodpick-ai.html` | The entire app — HTML, CSS, and JS in one file, with photo |
+| `foodpick-ai-no-image.html` | Same app, photo removed |
+| `BRANDING.md` | Identity, color, type, voice, and layout reference |
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |
 | `.github/workflows/preview.yml` | Manual (`workflow_dispatch`) test + Pages preview deploy |

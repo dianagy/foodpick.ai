@@ -55,10 +55,10 @@ jobs:
         # original filenames working as direct links too.
         run: |
           mkdir -p _site/no-image
-          cp diagnose-your-craving.html _site/index.html
-          cp diagnose-your-craving.html _site/diagnose-your-craving.html
-          cp diagnose-your-craving-no-image.html _site/no-image/index.html
-          cp diagnose-your-craving-no-image.html _site/diagnose-your-craving-no-image.html
+          cp foodpick-ai.html _site/index.html
+          cp foodpick-ai.html _site/foodpick-ai.html
+          cp foodpick-ai-no-image.html _site/no-image/index.html
+          cp foodpick-ai-no-image.html _site/foodpick-ai-no-image.html
 
       - uses: actions/configure-pages@v5
 

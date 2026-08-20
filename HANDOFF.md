@@ -577,3 +577,69 @@ same kind of extraction `tests/pipeline.test.mjs` already does), any change to
 both files by hand — or re-derive `diagnose-your-craving-no-image.html` from
 the current default by re-deleting the photo block, rather than editing it
 independently.
+
+---
+
+## 13. Rebrand — foodpick.ai (accounts stay out, files renamed)
+
+"Diagnose Your Craving" is retired. New identity, visual system, and copy —
+see `BRANDING.md`, the source of truth for all of it. This section covers only
+what BRANDING.md doesn't: how the rebrand was merged into the actual codebase.
+
+**Approach: minimal diff from the known-good file, not a rebuild from the
+design mockup.** A separate chat produced a full new HTML file
+(`foodpick-ai.html` as uploaded) alongside `BRANDING.md`. That file was built
+from an older lineage of this project — before accounts were stripped in §11,
+before the escaping fix and map watchdog in §10, before the dual with-photo/
+no-image split in §12. Rather than take it wholesale, the rebrand was applied
+as a layer on top of the current working file: new `<style>` block, new
+marquee/start-screen/loading-screen markup, new `showResult()` output (pills
+instead of the ticket/receipt framing), tone toggle removed — but the
+guest-only architecture, `esc()` escaping, the geolocation watchdog, and the
+`CHAT_ENDPOINT`/fetch chat transport all carried over untouched from §11/§12.
+
+**Decisions made explicitly, not inferred:**
+- Accounts stay out. The new file (as given) had reintroduced Supabase auth;
+  that was stripped back out to match §11's decision.
+- The dish database is unchanged — verified by diffing every dish and every
+  question header against the current live file before merging anything. Only
+  documented change: Q12 (side) "None" option moved first.
+- Chat still posts to `CHAT_ENDPOINT` via `fetch()`, not `sb.functions.invoke`.
+  The Edge Function itself is a plain HTTP handler and doesn't care which
+  client calls it, so this required no changes to `supabase/functions/chat-craving`.
+- Both files renamed: `diagnose-your-craving.html` → `foodpick-ai.html`,
+  `diagnose-your-craving-no-image.html` → `foodpick-ai-no-image.html`. The
+  no-image variant was rebuilt the same way as before (§12) — photo block
+  removed, everything else identical — from the new default file rather than
+  the old one.
+
+**What changed in the markup/script, concretely:**
+- `<head>`: title, meta description, theme-color, apple-mobile-web-app-title
+- Full `<style>` replacement: warm off-white palette (`--bg`/`--ink`/`--accent`
+  etc.), Fraunces + Inter instead of Archivo Black/DM Sans/Courier Prime, pill
+  tags (`.r-pill`) added, ticket-only classes (`.r-order-num`, `.r-item`,
+  `.r-total`, `.r-barcode`) set to `display:none` rather than deleted, since
+  `showResult()` still targets `.r-line` generically
+- Marquee: bowl-and-steam SVG mark + wordmark + permanent tagline, replacing
+  the old `<h1>` + tone-dependent tagline swap
+- Start screen: single "Start the quiz" button, tone-toggle buttons removed
+- New `#loading` screen, wired into `advance()` — `showScreen('loading')` then
+  `setTimeout(showResult, 2000)` when the quiz completes
+- `showResult()`: pills from `dish.tags.slice(0,4)` (escaped) replace the old
+  answer-checklist/order-ticket lines; `picks` is still populated by
+  `selectSingle`/the multi-select handler but no longer rendered — harmless,
+  matches the new file's own behavior, not worth removing for this pass
+- `headerText(q)` returns `q.header` directly (no more `.girly`/`.neutral`)
+- Retake button copy: "🔁 PICK AGAIN"
+
+**Verification:** Node syntax check on the extracted inline script for both
+files, `<div>` open/close tag count balanced, `tests/pipeline.test.mjs`
+(pointed at `foodpick-ai.html`) passing at 5,000 trials. Browser-level
+click-through testing in this environment repeatedly hit Playwright
+actionability timeouts that didn't reproduce in isolated minimal repros —
+computed-style inspection at the failure point showed the element genuinely
+visible, laid out correctly, and non-zero-size, so the working theory is
+sandbox/harness flakiness under repeated Chromium launches rather than an app
+bug, but this was **not fully run to a clean end-to-end pass** before this
+doc was written. Confirming a full quiz run through the actual deployed
+preview URL is the first thing to do after this lands.

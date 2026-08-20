@@ -5,7 +5,7 @@
 //   node tests/pipeline.test.mjs
 //
 // The dish database and pipeline functions are extracted from the real
-// diagnose-your-craving.html at runtime, so there is no second copy to drift.
+// foodpick-ai.html at runtime, so there is no second copy to drift.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 import vm from 'node:vm';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const html = readFileSync(join(root, 'diagnose-your-craving.html'), 'utf8');
+const html = readFileSync(join(root, 'foodpick-ai.html'), 'utf8');
 
 // Pull out a top-level `const <name> = [` / `function <name>(` block by
 // scanning forward to its matching closing bracket at column 0.

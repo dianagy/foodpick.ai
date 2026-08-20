@@ -4,55 +4,52 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Craving">
-<meta name="theme-color" content="#14111a">
-<meta name="description" content="A quick quiz to diagnose your craving and land on a takeout order.">
-<title>Diagnose Your Craving</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="foodpick.ai">
+<meta name="theme-color" content="#FBF6F0">
+<meta name="description" content="The last 'idk what to eat' you'll ever type. A quick quiz or a quick chat — either way you land on a takeout order.">
+<title>foodpick.ai</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #14111a;
-  --pink: #ff3e7f;
-  --yellow: #ffd23f;
-  --teal: #2ee6c8;
-  --ink: #f5f0ea;
-  --muted: #a79fbb;
-  --paper: #f7f2e7;
-  --paper-ink: #201c16;
+  --bg: #FBF6F0;
+  --card: #ffffff;
+  --ink: #3A3339;
+  --muted: #A8998F;
+  --accent: #C97B63;
+  --pill-bg: #F3D9D0;
+  --pill-text: #8A5A48;
+  --rule: #F0E6DB;
+  --border: #E3D5C9;
 }
 
-html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--ink); overflow-x: hidden; }
+html, body { min-height: 100%; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--ink); overflow-x: hidden; }
 body { display: flex; align-items: center; justify-content: center; padding: 32px 16px; position: relative; }
-body::before, body::after {
-  content: ''; position: fixed; width: 480px; height: 480px; border-radius: 50%;
-  filter: blur(120px); opacity: 0.28; z-index: 0; pointer-events: none;
-}
-body::before { background: var(--pink); top: -160px; left: -160px; }
-body::after { background: var(--teal); bottom: -160px; right: -160px; }
 
 .wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; }
 
-.marquee { text-align: center; margin-bottom: 22px; }
+.marquee { text-align: center; margin-bottom: 8px; }
+.marquee-top { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.marquee .mark-icon svg { width: 40px; height: 40px; display: block; }
 .marquee h1 {
-  font-family: 'Archivo Black', sans-serif; font-size: 26px; letter-spacing: 0.5px; line-height: 1.15;
-  text-shadow: 0 0 12px rgba(255,62,127,0.55), 0 0 30px rgba(255,62,127,0.25);
+  font-family: 'Fraunces', serif; font-weight: 400; font-size: 20px; letter-spacing: -0.2px; line-height: 1; color: var(--ink);
 }
-.marquee h1 span { color: var(--yellow); text-shadow: 0 0 12px rgba(255,210,63,0.6), 0 0 30px rgba(255,210,63,0.25); }
-.marquee p { color: var(--muted); font-size: 13px; margin-top: 8px; letter-spacing: 0.3px; }
+.marquee h1 span { color: var(--accent); }
+.marquee-mid { display: flex; align-items: center; justify-content: center; padding: 56px 0 48px; }
+.marquee p { color: var(--ink); font-size: 26px; font-weight: 600; letter-spacing: 0.1px; max-width: 300px; margin: 0 auto; line-height: 1.35; text-align: center; }
+.tagline-quote { color: var(--accent); }
 
 .card {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px;
-  padding: 28px 24px; backdrop-filter: blur(6px); box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  min-height: 380px; display: flex; flex-direction: column;
+  background: transparent; border: none; border-radius: 20px;
+  padding: 0; min-height: 380px; display: flex; flex-direction: column;
 }
 
 .progress-wrap { margin-bottom: 22px; }
-.progress-track { height: 5px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
-.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--yellow)); transition: width 0.35s ease; }
+.progress-track { height: 3px; background: var(--rule); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 0.35s ease; }
 .progress-label { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 6px; text-align: center; }
 
 .screen { display: none; flex-direction: column; flex: 1; animation: fadeSlide 0.35s ease; }
@@ -60,44 +57,34 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
 @keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 #start { align-items: center; justify-content: center; text-align: center; gap: 14px; }
-#start .big-emoji { font-size: 52px; filter: drop-shadow(0 0 14px rgba(255,210,63,0.4)); }
-#start p { color: var(--muted); font-size: 14px; max-width: 320px; line-height: 1.5; }
-.tone-options { display: flex; gap: 12px; margin-top: 4px; width: 100%; }
-.tone-btn {
-  flex: 1; font-family: 'Archivo Black', sans-serif; font-size: 13px; letter-spacing: 0.4px;
-  border-radius: 16px; padding: 18px 10px; cursor: pointer; background: rgba(255,255,255,0.04);
-  border: 1.5px solid rgba(255,255,255,0.12); color: var(--ink); transition: all 0.18s ease;
-}
-.tone-btn:hover { border-color: var(--teal); background: rgba(46,230,200,0.08); transform: translateY(-2px); }
-.tone-btn .t-emoji { display: block; font-size: 24px; margin-bottom: 6px; }
-.tone-btn .t-sub { display: block; font-family: 'DM Sans'; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 4px; letter-spacing: 0.2px; text-transform: none; }
+#start p { color: var(--muted); font-size: 14px; max-width: 300px; line-height: 1.5; }
 
 .history-badge {
-  font-size: 11.5px; color: var(--teal); background: rgba(46,230,200,0.08); border: 1px solid rgba(46,230,200,0.25);
-  border-radius: 999px; padding: 6px 14px; cursor: pointer; letter-spacing: 0.3px;
+  font-size: 11.5px; color: var(--muted); background: transparent; border: none;
+  border-radius: 999px; padding: 6px 4px; cursor: pointer; letter-spacing: 0.2px; text-decoration: underline;
 }
-.history-badge:hover { background: rgba(46,230,200,0.15); }
+.history-badge:hover { color: var(--ink); }
 
-.or-divider { display: flex; align-items: center; width: 100%; gap: 10px; margin: 2px 0; }
-.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+.or-divider { display: flex; align-items: center; width: 100%; gap: 10px; margin: 4px 0; }
+.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 .or-divider span { color: var(--muted); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; }
 
 .chat-entry-btn {
-  width: 100%; background: rgba(46,230,200,0.06); border: 1.5px solid rgba(46,230,200,0.25);
-  border-radius: 16px; padding: 14px; cursor: pointer; color: var(--ink);
-  font-family: 'DM Sans'; font-weight: 700; font-size: 13.5px; transition: all 0.18s ease;
+  width: 100%; background: #fff; border: 1px solid var(--border);
+  border-radius: 999px; padding: 13px 16px; cursor: pointer; color: var(--ink);
+  font-family: 'Inter'; font-weight: 500; font-size: 13px; transition: all 0.15s ease;
 }
-.chat-entry-btn:hover { background: rgba(46,230,200,0.12); transform: translateY(-1px); }
-.chat-entry-sub { display: block; font-weight: 400; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.chat-entry-btn:hover { border-color: var(--accent); }
+.chat-entry-sub { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
 
 #chat { padding: 0; }
-.chat-header { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
-.chat-back { background: none; border: none; color: var(--teal); font-size: 18px; cursor: pointer; padding: 4px 8px; }
-.chat-header-title { font-family: 'Archivo Black'; font-size: 14px; }
+.chat-header { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
+.chat-back { background: none; border: none; color: var(--accent); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+.chat-header-title { font-family: 'Fraunces'; font-size: 15px; }
 .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; min-height: 240px; }
 .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; animation: fadeSlide 0.25s ease; }
-.chat-bubble.user { align-self: flex-end; background: var(--pink); color: #1a0d12; font-weight: 500; border-bottom-right-radius: 4px; }
-.chat-bubble.assistant { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
+.chat-bubble.user { align-self: flex-end; background: var(--ink); color: var(--bg); font-weight: 400; border-bottom-right-radius: 4px; }
+.chat-bubble.assistant { align-self: flex-start; background: #fff; border: 1px solid var(--rule); border-bottom-left-radius: 4px; }
 .chat-bubble.typing { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
 .chat-bubble.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typingBounce 1.2s infinite ease-in-out; }
 .chat-bubble.typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -105,151 +92,140 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
 @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
 .chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
 .chat-input-row input {
-  flex: 1; padding: 12px 16px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.04); color: var(--ink); font-family: 'DM Sans'; font-size: 13.5px;
+  flex: 1; padding: 12px 16px; border-radius: 999px; border: 1px solid var(--border);
+  background: #fff; color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
 }
 .chat-input-row input::placeholder { color: var(--muted); }
 .chat-send-btn {
-  width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--pink); color: #1a0d12;
+  width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--ink); color: var(--bg);
   font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
 }
-.chat-send-btn:disabled { opacity: 0.5; }
+.chat-send-btn:disabled { opacity: 0.4; }
 .chat-not-configured { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 10px; line-height: 1.5; }
 
-
 .btn {
-  font-family: 'Archivo Black', sans-serif; font-size: 14px; letter-spacing: 0.5px; border: none; border-radius: 999px;
-  padding: 14px 28px; cursor: pointer; background: var(--pink); color: #1a0d12; transition: transform 0.15s ease, box-shadow 0.2s ease;
+  font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13.5px; letter-spacing: 0.1px; border: none; border-radius: 999px;
+  padding: 14px 28px; cursor: pointer; background: var(--ink); color: var(--bg); transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,62,127,0.4); }
-.btn.secondary { background: transparent; color: var(--teal); border: 1.5px solid var(--teal); }
-.btn.secondary:hover { box-shadow: 0 8px 24px rgba(46,230,200,0.25); }
+.btn:hover { opacity: 0.88; }
+.btn.secondary { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+.btn.secondary:hover { border-color: var(--accent); opacity: 1; }
 .btn.small { padding: 9px 18px; font-size: 11.5px; }
-.btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+.btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
-.q-label { color: var(--yellow); font-size: 11px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
-.q-text { font-family: 'Archivo Black', sans-serif; font-size: 20px; line-height: 1.3; margin-bottom: 20px; }
+.q-label { color: var(--accent); font-size: 10.5px; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; }
+.q-text { font-family: 'Fraunces', serif; font-weight: 400; font-size: 19px; line-height: 1.35; margin-bottom: 20px; }
 
 .options { display: grid; gap: 9px; overflow-y: auto; }
 .opt {
-  display: flex; align-items: center; gap: 12px; text-align: left; background: rgba(255,255,255,0.03);
-  border: 1.5px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px 15px; color: var(--ink);
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.18s ease;
+  display: flex; align-items: center; gap: 12px; text-align: left; background: #fff;
+  border: 1px solid var(--rule); border-radius: 14px; padding: 12px 15px; color: var(--ink);
+  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; cursor: pointer; transition: all 0.15s ease;
 }
-.opt .emoji { font-size: 19px; flex-shrink: 0; }
-.opt:hover { border-color: var(--teal); background: rgba(46,230,200,0.08); transform: translateX(3px); }
-.opt.checked { border-color: var(--pink); background: rgba(255,62,127,0.1); }
-.opt .check { margin-left: auto; font-size: 15px; opacity: 0; }
+.opt .emoji { font-size: 18px; flex-shrink: 0; }
+.opt:hover { border-color: var(--accent); }
+.opt.checked { border-color: var(--accent); background: var(--pill-bg); color: var(--pill-text); font-weight: 500; }
+.opt .check { margin-left: auto; font-size: 14px; opacity: 0; }
 .opt.checked .check { opacity: 1; }
 
 .continue-row { margin-top: 16px; text-align: center; }
 
+#loading { align-items: center; justify-content: center; }
+.loading-inner { text-align: center; }
+.loading-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.loading-dots span {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+  animation: loadingPulse 1.1s infinite ease-in-out;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes loadingPulse { 0%, 60%, 100% { transform: scale(1); opacity: 0.4; } 30% { transform: scale(1.3); opacity: 1; } }
+.loading-label { font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink); }
+
 #result { align-items: center; }
-.receipt-wrap { perspective: 800px; width: 100%; }
+.receipt-wrap { width: 100%; }
 .receipt {
-  background: var(--paper); color: var(--paper-ink); font-family: 'Courier Prime', monospace; width: 100%;
-  padding: 22px 20px 26px; border-radius: 4px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.45);
-  animation: printOut 0.5s cubic-bezier(.2,.9,.3,1); transform-origin: top center;
+  background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif; width: 100%;
+  padding: 24px 20px; border-radius: 20px; position: relative; box-shadow: 0 16px 40px rgba(74,65,73,0.08);
+  animation: printOut 0.4s cubic-bezier(.2,.9,.3,1);
 }
-@keyframes printOut { from { transform: scaleY(0.2); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
-.receipt::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: -9px; height: 18px;
-  background: linear-gradient(-45deg, var(--paper) 8px, transparent 0), linear-gradient(45deg, var(--paper) 8px, transparent 0);
-  background-size: 16px 18px; background-repeat: repeat-x;
-}
+@keyframes printOut { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .r-line { opacity: 0; animation: rIn 0.35s ease forwards; }
 @keyframes rIn { to { opacity: 1; } }
 .r-center { text-align: center; }
-.r-dash { border-top: 1.5px dashed rgba(32,28,22,0.35); margin: 10px 0; }
-.r-small { font-size: 11px; letter-spacing: 1px; color: rgba(32,28,22,0.6); }
-.r-order-num { font-size: 11px; letter-spacing: 1px; margin-bottom: 2px; }
-.r-title { font-family: 'Archivo Black', sans-serif; font-size: 22px; margin: 10px 0 4px; line-height: 1.2; }
-.r-cuisine { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(32,28,22,0.55); margin-bottom: 10px; }
-.r-desc { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
-.r-item { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; gap: 10px; }
-.r-item span:first-child { flex: 1; }
-.r-item span:last-child { color: rgba(32,28,22,0.55); text-align: right; }
-.r-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 13px; margin-top: 6px; }
-.r-pairing { font-size: 12px; margin-top: 4px; font-style: italic; }
-.r-history-note { font-size: 11px; margin-top: 6px; color: rgba(32,28,22,0.55); font-style: italic; }
-.r-barcode { height: 34px; margin-top: 14px; background: repeating-linear-gradient(90deg, var(--paper-ink) 0 2px, transparent 2px 5px, var(--paper-ink) 5px 7px, transparent 7px 11px); opacity: 0.85; }
+.r-dash { border-top: 1px solid var(--rule); margin: 12px 0; }
+.r-small { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.r-order-num { display: none; } /* order-number/ticket framing dropped, doesn't fit the new identity */
+.r-title { font-family: 'Fraunces', serif; font-weight: 400; font-size: 21px; margin: 2px 0 2px; line-height: 1.2; }
+.r-cuisine { font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.r-desc { font-size: 13px; line-height: 1.6; margin-bottom: 4px; color: var(--ink); }
+.r-item { display: none; } /* itemized answer checklist retired */
+.r-total { display: none; } /* receipt-total gimmick retired along with ticket framing */
+.r-pairing { font-size: 12px; margin-top: 6px; color: var(--muted); }
+.r-history-note { font-size: 11px; margin-top: 6px; color: var(--muted); font-style: italic; }
+.r-barcode { display: none; }
+.r-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.r-pill { font-size: 10px; background: var(--pill-bg); color: var(--pill-text); padding: 3px 10px; border-radius: 999px; }
+.r-reasoning-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-top: 12px; margin-bottom: 4px; }
+.r-reasoning { font-size: 12.5px; line-height: 1.6; color: var(--muted); font-style: italic; }
 
-.result-actions { display: flex; gap: 10px; margin-top: 20px; width: 100%; flex-wrap: wrap; justify-content: center; }
+.result-actions { display: flex; gap: 10px; margin-top: 18px; width: 100%; flex-wrap: wrap; justify-content: center; }
 .result-actions .btn { flex: 1; min-width: 140px; text-align: center; }
 .result-actions a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; }
 
-.dish-photo-wrap {
-  width: 100%; aspect-ratio: 16/10; border-radius: 16px; overflow: hidden; margin-bottom: 14px;
-  position: relative; background: linear-gradient(135deg, rgba(255,62,127,0.15), rgba(46,230,200,0.15));
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-}
-.dish-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
-.dish-photo-fallback {
-  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-  font-size: 64px;
-}
-.dish-photo-fallback.show { display: flex; }
-.dish-photo.hide { display: none; }
-
 .map-section { width: 100%; margin-top: 16px; }
-.map-section-label { color: var(--yellow); font-size: 10.5px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; text-align: center; }
-.map-frame-wrap { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
-.map-frame { width: 100%; height: 220px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
+.map-section-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; text-align: center; }
+.map-frame-wrap { width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid var(--rule); }
+.map-frame { width: 100%; height: 200px; border: 0; display: block; }
 .map-note { font-size: 10.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.4; }
 
 .log-form { width: 100%; margin-top: 12px; display: none; flex-direction: column; gap: 8px; }
 .log-form.show { display: flex; }
 .log-form input {
-  width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.04); color: var(--ink); font-family: 'DM Sans'; font-size: 13.5px;
+  width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
+  background: #fff; color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
 }
 .log-form input::placeholder { color: var(--muted); }
-.saved-note { font-size: 12px; color: var(--teal); text-align: center; margin-top: 8px; }
-.btn.small { padding: 9px 16px; font-size: 11px; }
+.saved-note { font-size: 12px; color: var(--accent); text-align: center; margin-top: 8px; }
 
 #history { align-items: stretch; }
 .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .history-empty { text-align: center; color: var(--muted); font-size: 13px; margin: auto; }
 .history-item {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+  background: #fff; border: 1px solid var(--rule); border-radius: 12px;
   padding: 10px 14px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
 }
-.history-item .hi-main { font-weight: 700; }
+.history-item .hi-main { font-weight: 500; font-family: 'Fraunces'; }
 .history-item .hi-sub { color: var(--muted); font-size: 11px; }
 .history-summary { font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 12px; }
 
 @media (max-width: 400px) {
-  .marquee h1 { font-size: 20px; }
-  .card { padding: 20px 15px; }
+  .marquee p { font-size: 22px; }
+  .marquee-mid { padding: 44px 0 36px; }
 }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="marquee">
-    <h1>DIAGNOSE YOUR <span>CRAVING</span></h1>
-    <p id="tagline">A very official diagnosis, delivered by takeout.</p>
+    <div class="marquee-top">
+      <div class="mark-icon"><svg viewBox="0 0 32 32"><path d="M6,14 Q16,26 26,14" fill="none" stroke="#3A3339" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="6" x2="16" y2="11" stroke="#3A3339" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+      <h1>foodpick<span>.ai</span></h1>
+    </div>
+    <div class="marquee-mid">
+      <p id="tagline">The last<br><span class="tagline-quote">"idk what to eat"</span><br>you'll ever type.</p>
+    </div>
   </div>
 
   <div class="card">
     <div class="progress-wrap" id="progressWrap" style="display:none;">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-label" id="progressLabel">DIAGNOSIS IN PROGRESS</div>
+      <div class="progress-label" id="progressLabel">FINDING YOUR PICK</div>
     </div>
 
     <div class="screen active" id="start">
-      <div class="big-emoji">🩺</div>
-      <p>Answer quickly, go with your first instinct. We'll land on a takeout order.</p>
-      <div class="tone-options">
-        <button class="tone-btn" id="toneGirly">
-          <span class="t-emoji">💅</span>Girly
-          <span class="t-sub">playful framing</span>
-        </button>
-        <button class="tone-btn" id="toneNeutral">
-          <span class="t-emoji">📋</span>Neutral
-          <span class="t-sub">straightforward</span>
-        </button>
-      </div>
+      <p>Answer a few quick questions and we'll land on a takeout order.</p>
+      <button class="btn" id="startQuizBtn" style="width:100%;">Start the quiz</button>
       <div class="or-divider"><span>or</span></div>
       <button class="chat-entry-btn" id="chatEntryBtn">
         💬 Just tell me what you're craving
@@ -283,11 +259,14 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
       </div>
     </div>
 
-    <div class="screen" id="result">
-      <div class="dish-photo-wrap" id="dishPhotoWrap">
-        <img id="dishPhoto" class="dish-photo" alt="">
-        <div class="dish-photo-fallback" id="dishPhotoFallback"></div>
+    <div class="screen" id="loading">
+      <div class="loading-inner">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div class="loading-label">Finding your pick</div>
       </div>
+    </div>
+
+    <div class="screen" id="result">
       <div class="receipt-wrap">
         <div class="receipt" id="receiptBody"></div>
       </div>
@@ -310,7 +289,7 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
       </div>
 
       <div class="result-actions" style="margin-top:14px;">
-        <button class="btn secondary" id="retakeBtn">🔁 RETAKE QUIZ</button>
+        <button class="btn secondary" id="retakeBtn">🔁 PICK AGAIN</button>
       </div>
     </div>
 
@@ -330,7 +309,7 @@ body::after { background: var(--teal); bottom: -160px; right: -160px; }
 /* ---------- QUESTIONS (spec v2) ---------- */
 const questions = [
   { id: 'meal', type: 'single',
-    header: { girly: "What meal are we diagnosing?", neutral: "What meal is this?" },
+    header: "What meal is this?",
     options: [
       { emoji: "🌅", label: "Breakfast/brunch", value: "breakfast" },
       { emoji: "☀️", label: "Lunch", value: "lunch" },
@@ -340,7 +319,7 @@ const questions = [
     ]
   },
   { id: 'occasion', type: 'single',
-    header: { girly: "What's the occasion, honestly?", neutral: "What's the occasion?" },
+    header: "What's the occasion?",
     options: [
       { emoji: "📅", label: "Just a normal day", tags: [] },
       { emoji: "💅", label: "Looking for a treat", tags: ["treat"] },
@@ -350,7 +329,7 @@ const questions = [
     ]
   },
   { id: 'vibe', type: 'single',
-    header: { girly: "What's the vibe today?", neutral: "What's the vibe today?" },
+    header: "What's the vibe today?",
     options: [
       { emoji: "😴", label: "Zero energy", tags: ["comfort"] },
       { emoji: "😌", label: "Comfort mode", tags: ["comfort"] },
@@ -360,7 +339,7 @@ const questions = [
     ]
   },
   { id: 'hunger', type: 'single',
-    header: { girly: "Be honest, how hungry are we?", neutral: "How hungry are you?" },
+    header: "How hungry are you?",
     options: [
       { emoji: "🍪", label: "Snack-sized", size: "light" },
       { emoji: "🍽️", label: "Regular meal", size: "medium" },
@@ -368,7 +347,7 @@ const questions = [
     ]
   },
   { id: 'craving', type: 'single',
-    header: { girly: "Pick one craving — just one.", neutral: "Pick one craving." },
+    header: "Pick one craving.",
     options: [
       { emoji: "🍗", label: "Savory", tags: ["savory"], value: "savory" },
       { emoji: "🧀", label: "Cheesy", tags: ["cheesy"], value: "cheesy" },
@@ -380,7 +359,7 @@ const questions = [
     ]
   },
   { id: 'texture', type: 'single',
-    header: { girly: "Which texture sounds best right now?", neutral: "Which texture sounds best?" },
+    header: "Which texture sounds best?",
     options: [
       { emoji: "🍟", label: "Crunchy", tags: ["crunchy"] },
       { emoji: "🍝", label: "Creamy", tags: ["creamy"] },
@@ -390,7 +369,7 @@ const questions = [
     ]
   },
   { id: 'format', type: 'multi',
-    header: { girly: "Pick your format(s) — go wild, multiple is fine.", neutral: "Pick your format(s)." },
+    header: "Pick your format(s).",
     shouldSkip: (s) => s.cravingValue === 'sweet',
     options: [
       { emoji: "🥣", label: "Bowl", value: "bowl", tags: ["bowl"] },
@@ -404,7 +383,7 @@ const questions = [
     ]
   },
   { id: 'dietary', type: 'multi',
-    header: { girly: "Any deal-breakers?", neutral: "Any deal-breakers?" },
+    header: "Any deal-breakers?",
     options: [
       { emoji: "🚫", label: "Nothing — I eat everything.", value: "none" },
       { emoji: "🌱", label: "Vegetarian", value: "vegetarian" },
@@ -418,7 +397,7 @@ const questions = [
     ]
   },
   { id: 'budget', type: 'single',
-    header: { girly: "What's today's budget?", neutral: "What's your budget?" },
+    header: "What's your budget?",
     options: [
       { emoji: "💷", label: "Under £10", budget: 1 },
       { emoji: "💷", label: "£10–20", budget: 2 },
@@ -427,7 +406,7 @@ const questions = [
     ]
   },
   { id: 'wait', type: 'single',
-    header: { girly: "How long can you realistically wait?", neutral: "How long can you wait for food?" },
+    header: "How long can you wait for food?",
     options: [
       { emoji: "⚡", label: "ASAP" },
       { emoji: "🔥", label: "10 min tops, I'm starving now" },
@@ -437,7 +416,7 @@ const questions = [
     ]
   },
   { id: 'method', type: 'single',
-    header: { girly: "Delivery, pickup, or living dangerously and dining in?", neutral: "Delivery or pickup?" },
+    header: "Delivery or pickup?",
     options: [
       { emoji: "🚗", label: "Delivery" },
       { emoji: "🚶", label: "Pickup, I don't mind" },
@@ -446,16 +425,17 @@ const questions = [
     ]
   },
   { id: 'side', type: 'single',
-    header: { girly: "Pick your dream side.", neutral: "Pick your dream side." },
+    header: "Pick your dream side.",
     shouldSkip: (s) => s.desiredSize === 'light',
     options: [
+      { emoji: "🚫", label: "None — I only care about the main." },
       { emoji: "🍟", label: "Fries" }, { emoji: "🧄", label: "Garlic bread" }, { emoji: "🥟", label: "Dumplings" },
       { emoji: "🌯", label: "Spring rolls" }, { emoji: "🫓", label: "Naan" }, { emoji: "🍚", label: "Rice" },
-      { emoji: "🥔", label: "Chips" }, { emoji: "🥗", label: "Salad" }, { emoji: "🚫", label: "None — I only care about the main." }
+      { emoji: "🥔", label: "Chips" }, { emoji: "🥗", label: "Salad" }
     ]
   },
   { id: 'dessert', type: 'single',
-    header: { girly: "Save room for something sweet?", neutral: "Dessert?" },
+    header: "Dessert?",
     options: [
       { emoji: "🍰", label: "Absolutely.", value: "yes" },
       { emoji: "🤔", label: "Maybe.", value: "maybe" },
@@ -612,7 +592,6 @@ function esc(s) {
 }
 
 /* ---------- STATE ---------- */
-let tone = "girly";
 let qIndex = 0;
 let bag = {};
 let picks = [];
@@ -706,7 +685,7 @@ function renderHistoryScreen() {
 
 /* ---------- QUIZ ENGINE ---------- */
 function headerText(q) {
-  return tone === 'girly' ? q.header.girly : q.header.neutral;
+  return q.header;
 }
 
 function getSkipState() {
@@ -716,7 +695,7 @@ function getSkipState() {
 function updateProgress() {
   const pct = Math.min(100, Math.round((qIndex / questions.length) * 100));
   progressFill.style.width = pct + '%';
-  progressLabel.textContent = tone === 'girly' ? 'DIAGNOSIS IN PROGRESS' : 'IN PROGRESS';
+  progressLabel.textContent = 'FINDING YOUR PICK';
 }
 
 function renderQuestion() {
@@ -800,7 +779,8 @@ function advance() {
   if (qIndex < questions.length) {
     renderQuestion();
   } else {
-    showResult();
+    showScreen('loading');
+    setTimeout(() => { showResult(); }, 2000);
   }
 }
 
@@ -873,42 +853,35 @@ function pickDish() {
 function showResult(externalDish, chatReasoning) {
   const dish = externalDish || pickDish();
   currentResultDish = dish;
-  const orderNum = Math.floor(1000 + Math.random() * 9000);
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const headerLabel = tone === 'girly' ? "TONIGHT'S DIAGNOSIS" : "TONIGHT'S PICK";
   const fromChat = !!externalDish;
 
   const usedHistory = history.some(h => h.dish === dish.name || h.cuisine === dish.cuisine);
 
-  const answerLines = fromChat
-    ? [`<div class="r-line r-small" style="margin-bottom:6px;">${tone === 'girly' ? 'WHY THIS PICK' : 'REASONING'}</div>`,
-       `<div class="r-line r-desc">${esc(chatReasoning || 'Based on what you told me.')}</div>`]
-    : [`<div class="r-line r-small" style="margin-bottom:6px;">${tone === 'girly' ? 'YOUR SYMPTOMS, DECODED' : 'YOUR ANSWERS'}</div>`,
-       ...picks.map(p => `<div class="r-line r-item"><span>${p.a}</span><span>✓</span></div>`)];
+  const pillsHtml = (dish.tags && dish.tags.length)
+    ? `<div class="r-line r-pills">${dish.tags.slice(0, 4).map(t => `<span class="r-pill">${esc(t)}</span>`).join('')}</div>`
+    : '';
+
+  const reasoningHtml = fromChat
+    ? [`<div class="r-line r-reasoning-label">WHY THIS PICK</div>`,
+       `<div class="r-line r-reasoning">${esc(chatReasoning || 'Based on what you told me.')}</div>`]
+    : [];
 
   const lines = [
-    `<div class="r-line r-center r-order-num">ORDER #${orderNum} · ${time}</div>`,
-    `<div class="r-line r-center r-small">${fromChat ? (tone === 'girly' ? 'FROM OUR CHAT' : 'CHAT RECOMMENDATION') : headerLabel}</div>`,
-    `<div class="r-dash r-line"></div>`,
-    `<div class="r-line r-center r-title">${esc(dish.emoji)} ${esc(dish.name)}</div>`,
-    `<div class="r-line r-center r-cuisine">${esc(dish.cuisine)}</div>`,
+    pillsHtml,
+    `<div class="r-line r-title">${esc(dish.emoji)} ${esc(dish.name)}</div>`,
+    `<div class="r-line r-cuisine">${esc(dish.cuisine)}</div>`,
     `<div class="r-line r-desc">${esc(dish.desc)}</div>`,
-    `<div class="r-dash r-line"></div>`,
-    ...answerLines,
-    `<div class="r-dash r-line"></div>`,
-    !fromChat && sideChoice && !sideChoice.startsWith('None') ? `<div class="r-line r-pairing">+ side: ${sideChoice}</div>` : '',
-    !fromChat && (dessertChoice === 'yes' || dessertChoice === 'maybe') && !dish.dessertHeavy ? `<div class="r-line r-pairing">+ pairs well with ${pairings[dish.cuisine] || 'something sweet'}</div>` : '',
+    !fromChat && sideChoice && !sideChoice.startsWith('None') ? `<div class="r-line r-pairing">+ side: ${esc(sideChoice)}</div>` : '',
+    !fromChat && (dessertChoice === 'yes' || dessertChoice === 'maybe') && !dish.dessertHeavy ? `<div class="r-line r-pairing">+ pairs well with ${esc(pairings[dish.cuisine] || 'something sweet')}</div>` : '',
     !fromChat && dessertChoice === 'pretending' ? `<div class="r-line r-pairing">(no judgment either way)</div>` : '',
     usedHistory ? `<div class="r-line r-history-note">Refined using your order history</div>` : '',
-    `<div class="r-line r-total"><span>TOTAL</span><span>ON THE HOUSE 💫</span></div>`,
-    `<div class="r-line r-barcode"></div>`,
-    `<div class="r-line r-center r-small" style="margin-top:8px;">THANK YOU, COME AGAIN</div>`
+    ...reasoningHtml
   ];
 
   const receipt = document.getElementById('receiptBody');
   receipt.innerHTML = lines.join('');
   const lineEls = receipt.querySelectorAll('.r-line');
-  lineEls.forEach((el, i) => { el.style.animationDelay = `${i * 0.045}s`; });
+  lineEls.forEach((el, i) => { el.style.animationDelay = `${i * 0.05}s`; });
 
   document.getElementById('findBtn').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dish.name + ' restaurants near me')}`;
   document.getElementById('logForm').classList.remove('show');
@@ -917,23 +890,10 @@ function showResult(externalDish, chatReasoning) {
   document.getElementById('logBtn').disabled = false;
   document.getElementById('logBtn').textContent = '✅ I ORDERED THIS';
 
-  loadDishPhoto(dish);
   loadNearbyMap(dish);
 
   progressFill.style.width = '100%';
   showScreen('result');
-}
-
-/* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
-function loadDishPhoto(dish) {
-  const img = document.getElementById('dishPhoto');
-  const fallback = document.getElementById('dishPhotoFallback');
-  const keywords = dish.query.replace(' delivery near me', '').trim().split(/\s+/).join(',');
-  img.classList.remove('hide');
-  fallback.classList.remove('show');
-  fallback.textContent = dish.emoji;
-  img.onerror = () => { img.classList.add('hide'); fallback.classList.add('show'); };
-  img.src = `https://loremflickr.com/480/300/${encodeURIComponent(keywords)}?lock=${Date.now()}`;
 }
 
 /* ---------- NEARBY MAP (no-API-key embed, uses geolocation if allowed) ---------- */
@@ -973,18 +933,13 @@ function resetState() {
   dessertChoice = null; multiSelected = [];
 }
 
-function startQuiz(selectedTone) {
-  tone = selectedTone;
-  tagline.textContent = tone === 'girly'
-    ? "A very official diagnosis, delivered by takeout."
-    : "A quick set of questions to land on tonight's order.";
+function startQuiz() {
   resetState();
   showScreen('quiz');
   renderQuestion();
 }
 
-document.getElementById('toneGirly').onclick = () => startQuiz('girly');
-document.getElementById('toneNeutral').onclick = () => startQuiz('neutral');
+document.getElementById('startQuizBtn').onclick = startQuiz;
 
 document.getElementById('retakeBtn').onclick = () => {
   progressWrap.style.display = 'none';
@@ -1034,9 +989,7 @@ function openChat() {
   chatInput.disabled = false;
   chatSendBtn.disabled = false;
   if (chatMessages.length === 0) {
-    const greeting = tone === 'girly'
-      ? "Hey! Tell me what you're in the mood for — mood, cravings, budget, whatever's on your mind — and I'll figure out what you should order."
-      : "Tell me what you're in the mood for and I'll help you land on something to order.";
+    const greeting = "Tell me what you're in the mood for and I'll help you land on something to order.";
     appendChatBubble('assistant', greeting);
     chatMessages.push({ role: 'assistant', content: greeting });
   }
@@ -1080,7 +1033,7 @@ async function sendChatMessage() {
     const res = await fetch(CHAT_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: chatMessages, tone })
+      body: JSON.stringify({ messages: chatMessages })
     });
 
     removeTypingIndicator();
