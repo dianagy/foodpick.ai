@@ -2,8 +2,8 @@
 
 A "what should I order for takeout" quiz. Answer 13 questions (with branching
 skip logic), get one dish recommendation rendered as a printed thermal receipt,
-plus a photo and a nearby-restaurants map. There's also a chat mode that talks to
-an LLM instead of using the button quiz.
+plus a nearby-restaurants map. There's also a chat mode that talks to an LLM
+instead of using the button quiz.
 
 One HTML file. No build step, no accounts, no sign-in. Open it and it works.
 
@@ -21,7 +21,7 @@ python3 -m http.server 8000
 
 ## What needs a backend
 
-Only chat. The quiz, scoring, receipt, photo, map, and order history all run
+Only chat. The quiz, scoring, receipt, map, and order history all run
 entirely in the browser with nothing configured.
 
 Chat needs a backend because the Anthropic API key must never sit in client

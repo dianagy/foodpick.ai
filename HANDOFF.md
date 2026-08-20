@@ -37,7 +37,7 @@ Everything lives in one HTML file:
   6. `dishes` array (28 dishes)
   7. Quiz engine (`renderQuestion`, `selectSingle`, `toggleMulti`, `advance`)
   8. Dish selection (`passesDietary`, `pickDish`)
-  9. Result rendering (`showResult`, `loadDishPhoto`, `loadNearbyMap`)
+  9. Result rendering (`showResult`, `loadNearbyMap`)
   10. Init / event wiring at the bottom
 
 External dependencies:
@@ -534,3 +534,31 @@ Headless Chromium, served over HTTP, with the network egress this sandbox allows
 
 Still unverified for the same reason as before: the LoremFlickr photo (sandbox
 blocks it) and chat end to end (needs a deployed function and a real key).
+
+---
+
+## 12. Dish Photo — Removed
+
+The keyword-matched LoremFlickr photo (§5, §10.2, §11.4) is gone. Confirmed live
+in a real browser: it loaded, but returned generic/unrelated stock photos rather
+than anything resembling the actual dish — the "not hand-curated" caveat from §5
+in practice, not a network or sandbox issue.
+
+**What was considered and why it was deferred rather than built:**
+
+- **A real photo of the specific restaurant/dish** (e.g. via Google Places
+  Photos) needs a Google Cloud project with billing enabled and an API key
+  shipped in the page — a real ongoing cost and a dependency the whole MVP
+  pass (§11) was built to avoid. Also imprecise: Places would return a photo
+  from whichever nearby restaurant it happens to match, not necessarily one
+  that serves the recommended dish, and results would vary by the user's
+  location rather than being fixed per dish.
+- **Hand-curated photos** (one fixed, accurate URL per dish, no API key) was
+  the other option on the table and remains the natural next step if a photo
+  is wanted later — see §7 item 3, still open.
+
+For now: no photo at all. `dishPhotoWrap`/`dishPhoto`/`dishPhotoFallback`
+(markup + CSS) and `loadDishPhoto()` are deleted; `showResult()` no longer
+calls it. The dish emoji in the receipt's title line (`r-title`) is the only
+visual identifier left. Nothing else on the result screen changed — map,
+receipt, and history are unaffected.
