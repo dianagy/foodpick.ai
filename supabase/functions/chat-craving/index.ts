@@ -8,7 +8,8 @@
 // Supabase JS SDK in the browser. Deploy it without JWT verification so the
 // page can call it anonymously:
 //   supabase functions deploy chat-craving --no-verify-jwt
-// then paste the printed URL into CHAT_ENDPOINT in diagnose-your-craving.html.
+// then paste the printed URL into CHAT_ENDPOINT in foodpick-ai.html
+// (and foodpick-ai-no-image.html).
 //
 // Note: --no-verify-jwt means anyone with the URL can spend your API budget.
 // Add rate limiting before sharing it publicly.
@@ -28,7 +29,7 @@ const CORS_HEADERS = {
 // single JSON object matching one of these two shapes. This keeps the client
 // simple (no free-text parsing) and keeps the guardrails from the project's
 // handoff doc (Section 9) enforced at the prompt level.
-const SYSTEM_PROMPT = `You are a food-craving and takeout decision agent for "Diagnose Your Craving." Help people who don't know what they want to eat. Ask concise, friendly questions when you need more signal — mood, cravings, budget, dietary restrictions, how hungry they are, how long they can wait. Don't ask more than one or two questions before making a call; people want a decisive answer, not an interrogation.
+const SYSTEM_PROMPT = `You are foodpick.ai's food-craving and takeout decision agent. Help people who don't know what they want to eat. Ask concise, friendly questions when you need more signal — mood, cravings, budget, dietary restrictions, how hungry they are, how long they can wait. Don't ask more than one or two questions before making a call; people want a decisive answer, not an interrogation.
 
 Once you have enough signal, recommend ONE specific dish. Never invent claims about specific real restaurants, live menus, prices, or availability — you are suggesting a type of dish, not verifying what's actually on a menu nearby. The app will handle showing the person real nearby places to search for it.
 
@@ -38,9 +39,9 @@ Still gathering info or just chatting:
 {"type":"message","reply":"<your conversational response, ask at most one focused question>"}
 
 Ready to recommend:
-{"type":"recommendation","reply":"<1-2 sentence explanation tied to what they told you>","dish":{"name":"<dish name>","cuisine":"<cuisine or style>","emoji":"<single relevant emoji>","desc":"<one short punchy sentence, receipt-style, matching the tone below>","query":"<dish name> delivery near me"}}
+{"type":"recommendation","reply":"<1-2 sentence explanation tied to what they told you>","dish":{"name":"<dish name>","cuisine":"<cuisine or style>","emoji":"<single relevant emoji>","desc":"<one short punchy sentence matching the voice below>","query":"<dish name> delivery near me"}}
 
-Tone: if "tone" is "girly", keep replies warm, playful, a little Gen-Z ("bestie", light humor, emoji-friendly). If "tone" is "neutral", keep replies straightforward and friendly without the slang. Either way, keep every reply short — this is a quick chat on a phone screen, not an essay.
+Voice: direct and warm, no slang or forced enthusiasm. Keep every reply short — this is a quick chat on a phone screen, not an essay.
 
 If someone describes symptoms suggesting they may be unwell beyond just hungry (not just "hungover" or "tired"), don't diagnose — gently suggest they consider whether food is really what they need right now, and keep any food suggestion gentle and simple (plain, easy-to-digest options) rather than heavy or spicy.`;
 
@@ -57,7 +58,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, tone } = await req.json();
+    const { messages } = await req.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ type: "message", reply: "Tell me what you're craving to get started." }), {
@@ -65,7 +66,6 @@ serve(async (req) => {
       });
     }
 
-    // Prepend tone context as part of the first user-visible turn context.
     const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
@@ -81,7 +81,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 400,
-        system: `${SYSTEM_PROMPT}\n\nCurrent tone setting: "${tone || "girly"}"`,
+        system: SYSTEM_PROMPT,
         messages: anthropicMessages,
       }),
     });
