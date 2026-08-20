@@ -154,6 +154,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .profile-dontwant-item::before { content: '✕'; color: var(--accent); font-size: 11px; margin-top: 2px; }
 
 #result { align-items: center; }
+#result.result-inline { margin-top: 28px; padding-top: 26px; border-top: 1px solid var(--rule); }
 .result-kicker { color: var(--accent); font-size: 10.5px; letter-spacing: 1.3px; font-weight: 600; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
 .receipt-wrap { width: 100%; }
 .receipt {
@@ -310,7 +311,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
       <div class="profile-section-label">What you probably don't want</div>
       <div class="profile-dontwant" id="profileDontWant"></div>
 
-      <div class="result-actions" style="margin-top:18px;">
+      <div class="result-actions" id="profileContinueRow" style="margin-top:18px;">
         <button class="btn" id="profileContinueBtn">🎯 SEE YOUR MATCH</button>
       </div>
     </div>
@@ -1052,6 +1053,10 @@ function showCravingProfile(profile) {
   document.getElementById('profileDontWant').innerHTML = profile.dontWant
     .map(d => `<div class="profile-dontwant-item">${esc(d)}</div>`).join('');
 
+  // Reset any leftover state from a previous run's inline reveal (see showResult).
+  document.getElementById('profileContinueRow').style.display = '';
+  document.getElementById('result').classList.remove('result-inline');
+
   showScreen('profile');
 }
 
@@ -1121,7 +1126,20 @@ function showResult(externalDish, chatReasoning, analysis) {
   loadNearbyMap(dish);
 
   progressFill.style.width = '100%';
-  showScreen('result');
+
+  const resultEl = document.getElementById('result');
+  if (analysis) {
+    // Quiz path: reveal the result below the still-visible profile screen
+    // instead of navigating away, and scroll down to it.
+    document.getElementById('profileContinueRow').style.display = 'none';
+    resultEl.classList.add('result-inline');
+    resultEl.classList.add('active');
+    requestAnimationFrame(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  } else {
+    // Chat path: no profile screen precedes this, so swap screens as before.
+    resultEl.classList.remove('result-inline');
+    showScreen('result');
+  }
 }
 
 /* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
