@@ -185,14 +185,23 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .alt-section { width: 100%; margin-top: 16px; }
 .alt-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
 .alt-item {
-  width: 100%; background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px;
-  margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; text-align: left;
-  font-family: inherit; cursor: pointer; transition: border-color 0.15s ease;
+  background: #fff; border: 1px solid var(--rule); border-radius: 12px;
+  margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s ease;
 }
-.alt-item:hover { border-color: var(--accent); }
-.alt-item .alt-emoji { font-size: 18px; }
+.alt-item:hover, .alt-item.expanded { border-color: var(--accent); }
+.alt-item-toggle {
+  width: 100%; background: none; border: none; margin: 0; padding: 10px 14px; color: inherit;
+  display: flex; gap: 10px; align-items: center; text-align: left; font-family: inherit; cursor: pointer;
+}
+.alt-item .alt-emoji { font-size: 18px; flex-shrink: 0; }
+.alt-item .alt-body { flex: 1; min-width: 0; }
 .alt-item .alt-name { font-family: 'Fraunces', serif; font-size: 13.5px; margin-bottom: 2px; }
 .alt-item .alt-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.alt-chevron { color: var(--muted); font-size: 11px; flex-shrink: 0; transition: transform 0.15s ease; }
+.alt-item.expanded .alt-chevron { transform: rotate(180deg); }
+.alt-expand { display: none; padding: 0 14px 14px; }
+.alt-item.expanded .alt-expand { display: block; }
+.alt-expand a.btn { display: block; width: 100%; text-align: center; text-decoration: none; }
 
 .result-actions { display: flex; gap: 10px; margin-top: 18px; width: 100%; flex-wrap: wrap; justify-content: center; }
 .result-actions .btn { flex: 1; min-width: 140px; text-align: center; }
@@ -951,8 +960,6 @@ function tallyTags(tags) {
   return tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
 }
 
-// Reusable so swapping to an alternate (selectAlternative) can regenerate
-// this line for whichever dish is now shown, not just the original winner.
 function whyTextFor(dish, richness, flavourLabel) {
   const matchedTags = dish.tags.filter(t => bag[t] > 0);
   return `You want ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour, and ${dish.name} brings ${matchedTags.length ? matchedTags.slice(0, 3).join(', ') : 'exactly that'}.`;
@@ -1073,9 +1080,7 @@ function showCravingProfile(profile) {
 }
 
 // Renders the dish into the result screen's DOM (receipt, photo, map,
-// alternates) without touching screen visibility or scroll position — shared
-// by showResult() (first reveal) and selectAlternative() (swapping which
-// dish is shown without re-triggering the reveal/scroll).
+// alternates) without touching screen visibility or scroll position.
 function renderResultContent(dish, chatReasoning, analysis) {
   currentResultDish = dish;
   const fromChat = !analysis;
@@ -1085,10 +1090,19 @@ function renderResultContent(dish, chatReasoning, analysis) {
   const altSection = document.getElementById('altSection');
   if (analysis && analysis.alternates.length) {
     document.getElementById('altList').innerHTML = analysis.alternates.map(d => `
-      <button type="button" class="alt-item" data-dish="${esc(d.name)}">
-        <span class="alt-emoji">${esc(d.emoji)}</span>
-        <div><div class="alt-name">${esc(d.name)}</div><div class="alt-desc">${esc(d.desc)}</div></div>
-      </button>`).join('');
+      <div class="alt-item">
+        <button type="button" class="alt-item-toggle">
+          <span class="alt-emoji">${esc(d.emoji)}</span>
+          <div class="alt-body">
+            <div class="alt-name">${esc(d.name)}</div>
+            <div class="alt-desc">${esc(d.desc)}</div>
+          </div>
+          <span class="alt-chevron">▾</span>
+        </button>
+        <div class="alt-expand">
+          <a class="btn small" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.name + ' restaurants near me')}" target="_blank" rel="noopener">📍 Find ${esc(d.name)} near me</a>
+        </div>
+      </div>`).join('');
     altSection.style.display = 'block';
   } else {
     altSection.style.display = 'none';
@@ -1102,9 +1116,6 @@ function renderResultContent(dish, chatReasoning, analysis) {
 
   let reasoningHtml = [];
   if (analysis) {
-    // Recomputed for `dish` rather than read off analysis.profile.why, so
-    // swapping to an alternate (selectAlternative) shows reasoning for
-    // whichever dish is actually on screen, not the original winner.
     const why = whyTextFor(dish, analysis.profile.richness, analysis.profile.flavourLabel);
     reasoningHtml = [
       `<div class="r-line r-reasoning-label">WHY THIS MATCHES</div>`,
@@ -1166,27 +1177,12 @@ function showResult(externalDish, chatReasoning, analysis) {
   }
 }
 
-// Swaps which dish is shown in the result section (main pick <-> alternate)
-// without re-running the reveal/scroll — the user is already looking at
-// this area, so re-render in place. "Find this near me" and the map update
-// to whichever dish is now selected.
-function selectAlternative(name) {
-  if (!pendingAnalysis || !currentResultDish || name === currentResultDish.name) return;
-  const pool = [pendingAnalysis.winner, ...pendingAnalysis.alternates];
-  const newMain = pool.find(d => d.name === name);
-  if (!newMain) return;
-
-  pendingAnalysis = {
-    ...pendingAnalysis,
-    winner: newMain,
-    alternates: pool.filter(d => d.name !== name),
-  };
-  renderResultContent(newMain, null, pendingAnalysis);
-}
-
+// Each alternate expands in place to reveal its own "find near me" link,
+// rather than swapping the main card above (which happened off-screen and
+// wasn't discoverable).
 document.getElementById('altList').addEventListener('click', (e) => {
-  const item = e.target.closest('.alt-item');
-  if (item) selectAlternative(item.dataset.dish);
+  const toggle = e.target.closest('.alt-item-toggle');
+  if (toggle) toggle.closest('.alt-item').classList.toggle('expanded');
 });
 
 /* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
