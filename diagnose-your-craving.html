@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Craving">
+<meta name="theme-color" content="#14111a">
+<meta name="description" content="A quick quiz to diagnose your craving and land on a takeout order.">
+<title>Diagnose Your Craving</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #14111a;
+  --pink: #ff3e7f;
+  --yellow: #ffd23f;
+  --teal: #2ee6c8;
+  --ink: #f5f0ea;
+  --muted: #a79fbb;
+  --paper: #f7f2e7;
+  --paper-ink: #201c16;
+}
+
+html, body { min-height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--ink); overflow-x: hidden; }
+body { display: flex; align-items: center; justify-content: center; padding: 32px 16px; position: relative; }
+body::before, body::after {
+  content: ''; position: fixed; width: 480px; height: 480px; border-radius: 50%;
+  filter: blur(120px); opacity: 0.28; z-index: 0; pointer-events: none;
+}
+body::before { background: var(--pink); top: -160px; left: -160px; }
+body::after { background: var(--teal); bottom: -160px; right: -160px; }
+
+.wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; }
+
+.marquee { text-align: center; margin-bottom: 22px; }
+.marquee h1 {
+  font-family: 'Archivo Black', sans-serif; font-size: 26px; letter-spacing: 0.5px; line-height: 1.15;
+  text-shadow: 0 0 12px rgba(255,62,127,0.55), 0 0 30px rgba(255,62,127,0.25);
+}
+.marquee h1 span { color: var(--yellow); text-shadow: 0 0 12px rgba(255,210,63,0.6), 0 0 30px rgba(255,210,63,0.25); }
+.marquee p { color: var(--muted); font-size: 13px; margin-top: 8px; letter-spacing: 0.3px; }
+
+.card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px;
+  padding: 28px 24px; backdrop-filter: blur(6px); box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  min-height: 380px; display: flex; flex-direction: column;
+}
+
+.progress-wrap { margin-bottom: 22px; }
+.progress-track { height: 5px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--yellow)); transition: width 0.35s ease; }
+.progress-label { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 6px; text-align: center; }
+
+.screen { display: none; flex-direction: column; flex: 1; animation: fadeSlide 0.35s ease; }
+.screen.active { display: flex; }
+@keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+#start { align-items: center; justify-content: center; text-align: center; gap: 14px; }
+#start .big-emoji { font-size: 52px; filter: drop-shadow(0 0 14px rgba(255,210,63,0.4)); }
+#start p { color: var(--muted); font-size: 14px; max-width: 320px; line-height: 1.5; }
+.tone-options { display: flex; gap: 12px; margin-top: 4px; width: 100%; }
+.tone-btn {
+  flex: 1; font-family: 'Archivo Black', sans-serif; font-size: 13px; letter-spacing: 0.4px;
+  border-radius: 16px; padding: 18px 10px; cursor: pointer; background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.12); color: var(--ink); transition: all 0.18s ease;
+}
+.tone-btn:hover { border-color: var(--teal); background: rgba(46,230,200,0.08); transform: translateY(-2px); }
+.tone-btn .t-emoji { display: block; font-size: 24px; margin-bottom: 6px; }
+.tone-btn .t-sub { display: block; font-family: 'DM Sans'; font-weight: 400; font-size: 10.5px; color: var(--muted); margin-top: 4px; letter-spacing: 0.2px; text-transform: none; }
+
+.history-badge {
+  font-size: 11.5px; color: var(--teal); background: rgba(46,230,200,0.08); border: 1px solid rgba(46,230,200,0.25);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer; letter-spacing: 0.3px;
+}
+.history-badge:hover { background: rgba(46,230,200,0.15); }
+
+.or-divider { display: flex; align-items: center; width: 100%; gap: 10px; margin: 2px 0; }
+.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+.or-divider span { color: var(--muted); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; }
+
+.chat-entry-btn {
+  width: 100%; background: rgba(46,230,200,0.06); border: 1.5px solid rgba(46,230,200,0.25);
+  border-radius: 16px; padding: 14px; cursor: pointer; color: var(--ink);
+  font-family: 'DM Sans'; font-weight: 700; font-size: 13.5px; transition: all 0.18s ease;
+}
+.chat-entry-btn:hover { background: rgba(46,230,200,0.12); transform: translateY(-1px); }
+.chat-entry-sub { display: block; font-weight: 400; font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+#chat { padding: 0; }
+.chat-header { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.chat-back { background: none; border: none; color: var(--teal); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+.chat-header-title { font-family: 'Archivo Black'; font-size: 14px; }
+.chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; min-height: 240px; }
+.chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; animation: fadeSlide 0.25s ease; }
+.chat-bubble.user { align-self: flex-end; background: var(--pink); color: #1a0d12; font-weight: 500; border-bottom-right-radius: 4px; }
+.chat-bubble.assistant { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
+.chat-bubble.typing { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
+.chat-bubble.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typingBounce 1.2s infinite ease-in-out; }
+.chat-bubble.typing span:nth-child(2) { animation-delay: 0.15s; }
+.chat-bubble.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+.chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+.chat-input-row input {
+  flex: 1; padding: 12px 16px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04); color: var(--ink); font-family: 'DM Sans'; font-size: 13.5px;
+}
+.chat-input-row input::placeholder { color: var(--muted); }
+.chat-send-btn {
+  width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--pink); color: #1a0d12;
+  font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+}
+.chat-send-btn:disabled { opacity: 0.5; }
+.chat-not-configured { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 10px; line-height: 1.5; }
+
+
+.btn {
+  font-family: 'Archivo Black', sans-serif; font-size: 14px; letter-spacing: 0.5px; border: none; border-radius: 999px;
+  padding: 14px 28px; cursor: pointer; background: var(--pink); color: #1a0d12; transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,62,127,0.4); }
+.btn.secondary { background: transparent; color: var(--teal); border: 1.5px solid var(--teal); }
+.btn.secondary:hover { box-shadow: 0 8px 24px rgba(46,230,200,0.25); }
+.btn.small { padding: 9px 18px; font-size: 11.5px; }
+.btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+
+.q-label { color: var(--yellow); font-size: 11px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
+.q-text { font-family: 'Archivo Black', sans-serif; font-size: 20px; line-height: 1.3; margin-bottom: 20px; }
+
+.options { display: grid; gap: 9px; overflow-y: auto; }
+.opt {
+  display: flex; align-items: center; gap: 12px; text-align: left; background: rgba(255,255,255,0.03);
+  border: 1.5px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px 15px; color: var(--ink);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.18s ease;
+}
+.opt .emoji { font-size: 19px; flex-shrink: 0; }
+.opt:hover { border-color: var(--teal); background: rgba(46,230,200,0.08); transform: translateX(3px); }
+.opt.checked { border-color: var(--pink); background: rgba(255,62,127,0.1); }
+.opt .check { margin-left: auto; font-size: 15px; opacity: 0; }
+.opt.checked .check { opacity: 1; }
+
+.continue-row { margin-top: 16px; text-align: center; }
+
+#result { align-items: center; }
+.receipt-wrap { perspective: 800px; width: 100%; }
+.receipt {
+  background: var(--paper); color: var(--paper-ink); font-family: 'Courier Prime', monospace; width: 100%;
+  padding: 22px 20px 26px; border-radius: 4px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+  animation: printOut 0.5s cubic-bezier(.2,.9,.3,1); transform-origin: top center;
+}
+@keyframes printOut { from { transform: scaleY(0.2); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+.receipt::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -9px; height: 18px;
+  background: linear-gradient(-45deg, var(--paper) 8px, transparent 0), linear-gradient(45deg, var(--paper) 8px, transparent 0);
+  background-size: 16px 18px; background-repeat: repeat-x;
+}
+.r-line { opacity: 0; animation: rIn 0.35s ease forwards; }
+@keyframes rIn { to { opacity: 1; } }
+.r-center { text-align: center; }
+.r-dash { border-top: 1.5px dashed rgba(32,28,22,0.35); margin: 10px 0; }
+.r-small { font-size: 11px; letter-spacing: 1px; color: rgba(32,28,22,0.6); }
+.r-order-num { font-size: 11px; letter-spacing: 1px; margin-bottom: 2px; }
+.r-title { font-family: 'Archivo Black', sans-serif; font-size: 22px; margin: 10px 0 4px; line-height: 1.2; }
+.r-cuisine { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(32,28,22,0.55); margin-bottom: 10px; }
+.r-desc { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+.r-item { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; gap: 10px; }
+.r-item span:first-child { flex: 1; }
+.r-item span:last-child { color: rgba(32,28,22,0.55); text-align: right; }
+.r-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 13px; margin-top: 6px; }
+.r-pairing { font-size: 12px; margin-top: 4px; font-style: italic; }
+.r-history-note { font-size: 11px; margin-top: 6px; color: rgba(32,28,22,0.55); font-style: italic; }
+.r-barcode { height: 34px; margin-top: 14px; background: repeating-linear-gradient(90deg, var(--paper-ink) 0 2px, transparent 2px 5px, var(--paper-ink) 5px 7px, transparent 7px 11px); opacity: 0.85; }
+
+.result-actions { display: flex; gap: 10px; margin-top: 20px; width: 100%; flex-wrap: wrap; justify-content: center; }
+.result-actions .btn { flex: 1; min-width: 140px; text-align: center; }
+.result-actions a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+
+.dish-photo-wrap {
+  width: 100%; aspect-ratio: 16/10; border-radius: 16px; overflow: hidden; margin-bottom: 14px;
+  position: relative; background: linear-gradient(135deg, rgba(255,62,127,0.15), rgba(46,230,200,0.15));
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+.dish-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dish-photo-fallback {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  font-size: 64px;
+}
+.dish-photo-fallback.show { display: flex; }
+.dish-photo.hide { display: none; }
+
+.map-section { width: 100%; margin-top: 16px; }
+.map-section-label { color: var(--yellow); font-size: 10.5px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; text-align: center; }
+.map-frame-wrap { width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+.map-frame { width: 100%; height: 220px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
+.map-note { font-size: 10.5px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.4; }
+
+.log-form { width: 100%; margin-top: 12px; display: none; flex-direction: column; gap: 8px; }
+.log-form.show { display: flex; }
+.log-form input {
+  width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04); color: var(--ink); font-family: 'DM Sans'; font-size: 13.5px;
+}
+.log-form input::placeholder { color: var(--muted); }
+.saved-note { font-size: 12px; color: var(--teal); text-align: center; margin-top: 8px; }
+.btn.small { padding: 9px 16px; font-size: 11px; }
+
+#history { align-items: stretch; }
+.history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.history-empty { text-align: center; color: var(--muted); font-size: 13px; margin: auto; }
+.history-item {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
+  padding: 10px 14px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.history-item .hi-main { font-weight: 700; }
+.history-item .hi-sub { color: var(--muted); font-size: 11px; }
+.history-summary { font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 12px; }
+
+@media (max-width: 400px) {
+  .marquee h1 { font-size: 20px; }
+  .card { padding: 20px 15px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marquee">
+    <h1>DIAGNOSE YOUR <span>CRAVING</span></h1>
+    <p id="tagline">A very official diagnosis, delivered by takeout.</p>
+  </div>
+
+  <div class="card">
+    <div class="progress-wrap" id="progressWrap" style="display:none;">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">DIAGNOSIS IN PROGRESS</div>
+    </div>
+
+    <div class="screen active" id="start">
+      <div class="big-emoji">🩺</div>
+      <p>Answer quickly, go with your first instinct. We'll land on a takeout order.</p>
+      <div class="tone-options">
+        <button class="tone-btn" id="toneGirly">
+          <span class="t-emoji">💅</span>Girly
+          <span class="t-sub">playful framing</span>
+        </button>
+        <button class="tone-btn" id="toneNeutral">
+          <span class="t-emoji">📋</span>Neutral
+          <span class="t-sub">straightforward</span>
+        </button>
+      </div>
+      <div class="or-divider"><span>or</span></div>
+      <button class="chat-entry-btn" id="chatEntryBtn">
+        💬 Just tell me what you're craving
+        <span class="chat-entry-sub">Skip the quiz — type it out instead</span>
+      </button>
+      <button class="history-badge" id="historyBadge" style="display:none;"></button>
+    </div>
+
+    <div class="screen" id="chat">
+      <div class="chat-header">
+        <button class="chat-back" id="chatBackBtn">←</button>
+        <div class="chat-header-title">Tell me what you're craving</div>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="e.g. something spicy, cheap, under 20 min..." autocomplete="off">
+        <button class="chat-send-btn" id="chatSendBtn">➤</button>
+      </div>
+      <div class="chat-not-configured" id="chatNotConfigured" style="display:none;">
+        Chat isn't set up yet — it needs a small backend to hold the API key.
+        See the README for the two deploy commands. The quiz works fully without it.
+      </div>
+    </div>
+
+    <div class="screen" id="quiz">
+      <div class="q-label" id="qLabel"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="qOptions"></div>
+      <div class="continue-row" id="continueRow" style="display:none;">
+        <button class="btn" id="continueBtn">CONTINUE</button>
+      </div>
+    </div>
+
+    <div class="screen" id="result">
+      <div class="dish-photo-wrap" id="dishPhotoWrap">
+        <img id="dishPhoto" class="dish-photo" alt="">
+        <div class="dish-photo-fallback" id="dishPhotoFallback"></div>
+      </div>
+      <div class="receipt-wrap">
+        <div class="receipt" id="receiptBody"></div>
+      </div>
+      <div class="result-actions">
+        <a class="btn" id="findBtn" target="_blank" rel="noopener">📍 FIND IT NEAR ME</a>
+        <button class="btn secondary" id="logBtn">✅ I ORDERED THIS</button>
+      </div>
+      <div class="log-form" id="logForm">
+        <input type="text" id="restaurantInput" placeholder="Where'd you order from? (optional)">
+        <button class="btn small" id="saveLogBtn">SAVE TO HISTORY</button>
+      </div>
+      <div class="saved-note" id="savedNote" style="display:none;">Saved ✓ — this'll help sharpen future suggestions.</div>
+
+      <div class="map-section">
+        <div class="map-section-label" id="mapSectionLabel">🍽️ NEARBY SPOTS SERVING THIS</div>
+        <div class="map-frame-wrap">
+          <iframe id="mapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="map-note" id="mapNote">Allow location access for results near you — otherwise this searches generally.</div>
+      </div>
+
+      <div class="result-actions" style="margin-top:14px;">
+        <button class="btn secondary" id="retakeBtn">🔁 RETAKE QUIZ</button>
+      </div>
+    </div>
+
+    <div class="screen" id="history">
+      <div class="q-label">YOUR ORDER HISTORY</div>
+      <div class="history-summary" id="historySummary"></div>
+      <div class="history-list" id="historyList"></div>
+      <div class="result-actions">
+        <button class="btn secondary" id="clearHistoryBtn">🗑️ CLEAR HISTORY</button>
+        <button class="btn" id="backFromHistoryBtn">← BACK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- QUESTIONS (spec v2) ---------- */
+const questions = [
+  { id: 'meal', type: 'single',
+    header: { girly: "What meal are we diagnosing?", neutral: "What meal is this?" },
+    options: [
+      { emoji: "🌅", label: "Breakfast/brunch", value: "breakfast" },
+      { emoji: "☀️", label: "Lunch", value: "lunch" },
+      { emoji: "🌆", label: "Dinner", value: "dinner" },
+      { emoji: "🌙", label: "Late night", value: "latenight" },
+      { emoji: "🍿", label: "Anytime snack", value: "snack" }
+    ]
+  },
+  { id: 'occasion', type: 'single',
+    header: { girly: "What's the occasion, honestly?", neutral: "What's the occasion?" },
+    options: [
+      { emoji: "📅", label: "Just a normal day", tags: [] },
+      { emoji: "💅", label: "Looking for a treat", tags: ["treat"] },
+      { emoji: "🎉", label: "Special occasion", tags: ["fancy"] },
+      { emoji: "😩", label: "Surviving a rough day", tags: ["comfort"] },
+      { emoji: "👥", label: "Hosting tonight", tags: ["shareable"] }
+    ]
+  },
+  { id: 'vibe', type: 'single',
+    header: { girly: "What's the vibe today?", neutral: "What's the vibe today?" },
+    options: [
+      { emoji: "😴", label: "Zero energy", tags: ["comfort"] },
+      { emoji: "😌", label: "Comfort mode", tags: ["comfort"] },
+      { emoji: "💪", label: "Healthy-ish", tags: ["healthy","savory"] },
+      { emoji: "🎉", label: "Something exciting", tags: ["bold"] },
+      { emoji: "💅", label: "Treat myself", tags: ["treat"] }
+    ]
+  },
+  { id: 'hunger', type: 'single',
+    header: { girly: "Be honest, how hungry are we?", neutral: "How hungry are you?" },
+    options: [
+      { emoji: "🍪", label: "Snack-sized", size: "light" },
+      { emoji: "🍽️", label: "Regular meal", size: "medium" },
+      { emoji: "🦖", label: "Absolutely starving", size: "hearty" }
+    ]
+  },
+  { id: 'craving', type: 'single',
+    header: { girly: "Pick one craving — just one.", neutral: "Pick one craving." },
+    options: [
+      { emoji: "🍗", label: "Savory", tags: ["savory"], value: "savory" },
+      { emoji: "🧀", label: "Cheesy", tags: ["cheesy"], value: "cheesy" },
+      { emoji: "🌶️", label: "Spicy", tags: ["spicy"], value: "spicy" },
+      { emoji: "🍜", label: "Warm and cozy", tags: ["comfort"], value: "cozy" },
+      { emoji: "🥗", label: "Fresh", tags: ["fresh"], value: "fresh" },
+      { emoji: "🍔", label: "Crispy/fried", tags: ["crispy"], value: "crispy" },
+      { emoji: "🍬", label: "Sweet", tags: ["sweet"], value: "sweet" }
+    ]
+  },
+  { id: 'texture', type: 'single',
+    header: { girly: "Which texture sounds best right now?", neutral: "Which texture sounds best?" },
+    options: [
+      { emoji: "🍟", label: "Crunchy", tags: ["crunchy"] },
+      { emoji: "🍝", label: "Creamy", tags: ["creamy"] },
+      { emoji: "🍞", label: "Soft", tags: ["soft"] },
+      { emoji: "🍑", label: "Juicy", tags: ["juicy"] },
+      { emoji: "🍜", label: "Slurpable", tags: ["slurpable"] }
+    ]
+  },
+  { id: 'format', type: 'multi',
+    header: { girly: "Pick your format(s) — go wild, multiple is fine.", neutral: "Pick your format(s)." },
+    shouldSkip: (s) => s.cravingValue === 'sweet',
+    options: [
+      { emoji: "🥣", label: "Bowl", value: "bowl", tags: ["bowl"] },
+      { emoji: "🌯", label: "Wrap", value: "wrap", tags: ["wrap"] },
+      { emoji: "🍲", label: "Soup", value: "soup", tags: ["soup"] },
+      { emoji: "🥪", label: "Sandwich", value: "sandwich", tags: ["sandwich"] },
+      { emoji: "🍕", label: "Pizza", value: "pizza", tags: ["pizza"] },
+      { emoji: "🍜", label: "Noodles", value: "noodles", tags: ["noodles"] },
+      { emoji: "🍚", label: "Rice-based", value: "rice", tags: ["rice"] },
+      { emoji: "🍽️", label: "Plate/mains-style", value: "plate", tags: ["plate"] }
+    ]
+  },
+  { id: 'dietary', type: 'multi',
+    header: { girly: "Any deal-breakers?", neutral: "Any deal-breakers?" },
+    options: [
+      { emoji: "🚫", label: "Nothing — I eat everything.", value: "none" },
+      { emoji: "🌱", label: "Vegetarian", value: "vegetarian" },
+      { emoji: "🌿", label: "Vegan", value: "vegan" },
+      { emoji: "🥛", label: "Dairy-free", value: "dairyFree" },
+      { emoji: "🧀", label: "No cheese", value: "noCheese" },
+      { emoji: "🌾", label: "Gluten-free", value: "glutenFree" },
+      { emoji: "🥜", label: "Nut allergy", value: "nutFree" },
+      { emoji: "🐟", label: "No seafood", value: "noSeafood" },
+      { emoji: "🥩", label: "No red meat", value: "noRedMeat" }
+    ]
+  },
+  { id: 'budget', type: 'single',
+    header: { girly: "What's today's budget?", neutral: "What's your budget?" },
+    options: [
+      { emoji: "💷", label: "Under £10", budget: 1 },
+      { emoji: "💷", label: "£10–20", budget: 2 },
+      { emoji: "💷", label: "£20+", budget: 3 },
+      { emoji: "🤑", label: "Money isn't the deciding factor today.", budget: null }
+    ]
+  },
+  { id: 'wait', type: 'single',
+    header: { girly: "How long can you realistically wait?", neutral: "How long can you wait for food?" },
+    options: [
+      { emoji: "⚡", label: "ASAP" },
+      { emoji: "🔥", label: "10 min tops, I'm starving now" },
+      { emoji: "🕐", label: "Under 20 minutes" },
+      { emoji: "🕰️", label: "Under 30 minutes" },
+      { emoji: "🌤️", label: "No time pressure" }
+    ]
+  },
+  { id: 'method', type: 'single',
+    header: { girly: "Delivery, pickup, or living dangerously and dining in?", neutral: "Delivery or pickup?" },
+    options: [
+      { emoji: "🚗", label: "Delivery" },
+      { emoji: "🚶", label: "Pickup, I don't mind" },
+      { emoji: "🍽️", label: "Dine in" },
+      { emoji: "🤷", label: "Either works" }
+    ]
+  },
+  { id: 'side', type: 'single',
+    header: { girly: "Pick your dream side.", neutral: "Pick your dream side." },
+    shouldSkip: (s) => s.desiredSize === 'light',
+    options: [
+      { emoji: "🍟", label: "Fries" }, { emoji: "🧄", label: "Garlic bread" }, { emoji: "🥟", label: "Dumplings" },
+      { emoji: "🌯", label: "Spring rolls" }, { emoji: "🫓", label: "Naan" }, { emoji: "🍚", label: "Rice" },
+      { emoji: "🥔", label: "Chips" }, { emoji: "🥗", label: "Salad" }, { emoji: "🚫", label: "None — I only care about the main." }
+    ]
+  },
+  { id: 'dessert', type: 'single',
+    header: { girly: "Save room for something sweet?", neutral: "Dessert?" },
+    options: [
+      { emoji: "🍰", label: "Absolutely.", value: "yes" },
+      { emoji: "🤔", label: "Maybe.", value: "maybe" },
+      { emoji: "🙈", label: "I'm pretending I don't want one.", value: "pretending" },
+      { emoji: "🙅‍♀️", label: "No thanks.", value: "no" }
+    ]
+  }
+];
+
+/* ---------- DISH DATABASE ---------- */
+const dishes = [
+  { name: "Margherita Pizza", cuisine: "Italian", emoji: "🍕", size: "medium", budget: 2, contains_cheese: true,
+    tags: ["cheesy","comfort","soft","treat","pizza"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Simple, melty, and correct in every way. No notes.", query: "margherita pizza delivery near me" },
+  { name: "Creamy Mushroom Risotto", cuisine: "Italian", emoji: "🍚", size: "medium", budget: 2, contains_cheese: true,
+    tags: ["creamy","comfort","savory","rice","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Slow-stirred, rich, and quietly one of the best comfort orders out there.", query: "mushroom risotto delivery near me" },
+  { name: "Spicy Ramen", cuisine: "Japanese", emoji: "🍜", size: "hearty", budget: 2, contains_cheese: false,
+    tags: ["spicy","comfort","slurpable","savory","noodles","soup"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: false, nutFree: true, seafood: false, redMeat: true },
+    desc: "A steaming, chili-laced bowl that fixes approximately 90% of bad days.", query: "spicy ramen delivery near me" },
+  { name: "Sushi Platter", cuisine: "Japanese", emoji: "🍣", size: "light", budget: 3, contains_cheese: false,
+    tags: ["fresh","healthy","savory","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: false, nutFree: true, seafood: true, redMeat: false },
+    desc: "The 'treat yourself' order that always feels a little bit special.", query: "sushi platter delivery near me" },
+  { name: "Kung Pao Chicken", cuisine: "Chinese", emoji: "🥡", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["spicy","savory","crunchy","bold","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: false, nutFree: false, seafood: false, redMeat: false },
+    desc: "Peanuts, chilies, and a glossy sauce that hits every note at once.", query: "kung pao chicken delivery near me" },
+  { name: "Vegetable Dumplings", cuisine: "Chinese", emoji: "🥟", size: "light", budget: 1, contains_cheese: false,
+    tags: ["comfort","soft","savory","plate","shareable"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Little pillowy parcels that are somehow always the right choice.", query: "vegetable dumplings delivery near me" },
+  { name: "Korean Fried Chicken", cuisine: "Korean", emoji: "🍗", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["crispy","spicy","crunchy","bold","treat","plate","shareable"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Impossibly crunchy, glazed, and worth the extra napkins.", query: "korean fried chicken delivery near me" },
+  { name: "Bibimbap", cuisine: "Korean", emoji: "🍲", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["fresh","healthy","savory","crunchy","comfort","bowl","rice"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "A little bit of everything, mixed together into something that just works.", query: "bibimbap delivery near me" },
+  { name: "Street Tacos", cuisine: "Mexican", emoji: "🌮", size: "light", budget: 1, contains_cheese: true,
+    tags: ["savory","fresh","spicy","crispy","bold","wrap","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: true },
+    desc: "Quick, bright, and easy to order 'just one more' of.", query: "street tacos delivery near me" },
+  { name: "Loaded Nachos", cuisine: "Mexican", emoji: "🧡", size: "medium", budget: 1, contains_cheese: true,
+    tags: ["cheesy","crispy","spicy","savory","treat","bold","plate","shareable"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Chaotic, shareable (or not), and gone in ten minutes.", query: "loaded nachos delivery near me" },
+  { name: "Butter Chicken & Naan", cuisine: "Indian", emoji: "🍛", size: "hearty", budget: 2, contains_cheese: false,
+    tags: ["creamy","comfort","savory","treat","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: false, seafood: false, redMeat: false },
+    desc: "Rich, creamy, and made for scooping up with warm naan.", query: "butter chicken and naan delivery near me" },
+  { name: "Chana Masala", cuisine: "Indian", emoji: "🫘", size: "medium", budget: 1, contains_cheese: false,
+    tags: ["savory","comfort","soft","healthy","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Warm spiced chickpeas that quietly outperform half the menu.", query: "chana masala delivery near me" },
+  { name: "Pad Thai", cuisine: "Thai", emoji: "🍤", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["savory","crunchy","soft","sweet","bold","noodles"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: true, nutFree: false, seafood: true, redMeat: false },
+    desc: "Silky rice noodles, a little sweet, a little tangy — always reliable.", query: "pad thai delivery near me" },
+  { name: "Green Curry", cuisine: "Thai", emoji: "🍛", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["spicy","creamy","comfort","healthy","plate","soup"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Coconut milk and chilies doing exactly what they're meant to.", query: "green curry delivery near me" },
+  { name: "Cheeseburger & Fries", cuisine: "American", emoji: "🍔", size: "hearty", budget: 2, contains_cheese: true,
+    tags: ["crispy","cheesy","savory","juicy","treat","sandwich"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: true },
+    desc: "The universal comfort order. Reliable, greasy, correct.", query: "cheeseburger and fries delivery near me" },
+  { name: "BBQ Ribs", cuisine: "American", emoji: "🍖", size: "hearty", budget: 3, contains_cheese: false,
+    tags: ["savory","juicy","comfort","treat","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: true },
+    desc: "Sticky, smoky, and worth every wet wipe.", query: "bbq ribs delivery near me" },
+  { name: "Chicken Shawarma Wrap", cuisine: "Mediterranean", emoji: "🌯", size: "medium", budget: 2, contains_cheese: false,
+    tags: ["savory","juicy","fresh","crispy","bold","healthy","wrap"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Charred, garlicky, and wrapped up for maximum efficiency.", query: "chicken shawarma wrap delivery near me" },
+  { name: "Falafel & Hummus Plate", cuisine: "Mediterranean", emoji: "🧆", size: "light", budget: 1, contains_cheese: false,
+    tags: ["fresh","crunchy","savory","healthy","plate","bowl","shareable"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Crispy outside, soft inside, dangerously easy to eat all of.", query: "falafel and hummus plate delivery near me" },
+
+  /* ---- Breakfast/brunch dishes (Q1 = Breakfast/brunch filters to only these) ---- */
+  { name: "Full English Breakfast", cuisine: "British", emoji: "🍳", size: "hearty", budget: 2, contains_cheese: false,
+    breakfast: true, tags: ["savory","comfort","crispy","plate"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: true },
+    desc: "Eggs, bacon, sausage, beans — a full reset in one plate.", query: "full english breakfast delivery near me" },
+  { name: "Avocado Toast", cuisine: "Brunch", emoji: "🥑", size: "light", budget: 1, contains_cheese: true,
+    breakfast: true, tags: ["fresh","healthy","soft","sandwich"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Smashed avocado, good bread, a little chili flake. Reliable brunch order.", query: "avocado toast delivery near me" },
+  { name: "Breakfast Burrito", cuisine: "Mexican", emoji: "🌯", size: "hearty", budget: 1, contains_cheese: true,
+    breakfast: true, tags: ["savory","cheesy","hearty","wrap"],
+    dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: true },
+    desc: "Eggs, cheese, and breakfast meats rolled up for eating on the move.", query: "breakfast burrito delivery near me" },
+  { name: "Fluffy Pancakes", cuisine: "American", emoji: "🥞", size: "medium", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["sweet","soft","comfort","treat","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Stacked, syrupy, and the closest breakfast gets to dessert.", query: "pancakes delivery near me" },
+  { name: "Shakshuka", cuisine: "Mediterranean", emoji: "🍳", size: "medium", budget: 1, contains_cheese: true,
+    breakfast: true, tags: ["savory","spicy","comfort","soft","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Eggs poached in a spiced tomato sauce, mopped up with bread.", query: "shakshuka delivery near me" },
+
+  /* ---- Dessert-heavy dishes (Q5 = Sweet treats these as the main event) ---- */
+  { name: "Molten Chocolate Lava Cake", cuisine: "French", emoji: "🍫", size: "light", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","creamy","treat","soft","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Warm cake, molten center, ice cream optional but strongly recommended.", query: "chocolate lava cake delivery near me" },
+  { name: "Belgian Waffles & Ice Cream", cuisine: "Belgian", emoji: "🧇", size: "medium", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","crunchy","treat","soft","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Crisp outside, fluffy inside, buried under one questionable-in-a-good-way amount of toppings.", query: "belgian waffles delivery near me" },
+  { name: "Cinnamon Rolls", cuisine: "American", emoji: "🍥", size: "medium", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","soft","comfort","treat","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Warm, gooey, iced — basically a hug you can order.", query: "cinnamon rolls delivery near me" },
+  { name: "Mochi Ice Cream Platter", cuisine: "Japanese", emoji: "🍡", size: "light", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","fresh","light","treat","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Chewy, cold, and dangerously easy to keep eating 'just one more' of.", query: "mochi ice cream delivery near me" },
+  { name: "Churros with Chocolate Dip", cuisine: "Mexican", emoji: "🥖", size: "light", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","crunchy","treat","bold","plate"],
+    dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Crispy, sugar-dusted, made for dunking until the sauce is gone.", query: "churros delivery near me" }
+];
+
+const pairings = {
+  "Italian": "tiramisu", "Japanese": "mochi ice cream", "Chinese": "sesame balls", "Korean": "Korean shaved ice (bingsu)",
+  "Mexican": "churros", "Indian": "gulab jamun", "Thai": "mango sticky rice", "American": "a chocolate milkshake",
+  "Mediterranean": "baklava"
+};
+
+/* ---------- CHAT CONFIG ----------
+   The quiz needs no backend at all. Chat needs a small one, because the
+   Anthropic API key must never sit in browser code — so it lives in a
+   serverless function this page posts to.
+
+   Deploy supabase/functions/chat-craving (see README) and paste its public
+   URL here. Leave it empty and everything else still works — chat just shows
+   a short setup note instead. */
+const CHAT_ENDPOINT = '';
+const CHAT_CONFIGURED = /^https?:\/\//.test(CHAT_ENDPOINT);
+
+
+/* Restaurant names are user-typed and dish/reasoning fields can come from the
+   chat model, so both reach innerHTML as untrusted text. */
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]);
+}
+
+/* ---------- STATE ---------- */
+let tone = "girly";
+let qIndex = 0;
+let bag = {};
+let picks = [];
+let desiredSize = null;
+let mealTime = null;
+let cravingValue = null;
+let budgetFilter = null;
+let dietaryFilters = [];
+let sideChoice = null;
+let dessertChoice = null;
+let multiSelected = [];
+let history = [];
+let currentResultDish = null;
+let chatMessages = []; // [{role: 'user'|'assistant', content: '...'}]
+let chatBusy = false;
+
+const qLabel = document.getElementById('qLabel');
+const qText = document.getElementById('qText');
+const qOptions = document.getElementById('qOptions');
+const continueRow = document.getElementById('continueRow');
+const continueBtn = document.getElementById('continueBtn');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const tagline = document.getElementById('tagline');
+const historyBadge = document.getElementById('historyBadge');
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---------- HISTORY (localStorage only — no accounts, no sync) ---------- */
+const HISTORY_KEY = 'diagnoseCraving_orderHistory';
+
+function loadHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    history = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    history = [];
+  }
+  renderHistoryBadge();
+}
+
+function renderHistoryBadge() {
+  if (history.length > 0) {
+    historyBadge.style.display = 'inline-block';
+    historyBadge.textContent = `🧾 ${history.length} past order${history.length === 1 ? '' : 's'} remembered — tap to view`;
+  } else {
+    historyBadge.style.display = 'none';
+  }
+}
+
+function saveHistoryEntry(entry) {
+  history.push(entry);
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
+  renderHistoryBadge();
+}
+
+function clearHistory() {
+  history = [];
+  try { localStorage.removeItem(HISTORY_KEY); } catch (e) {}
+  renderHistoryBadge();
+  renderHistoryScreen();
+}
+
+function renderHistoryScreen() {
+  const list = document.getElementById('historyList');
+  const summary = document.getElementById('historySummary');
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">No past orders logged yet.<br>Finish a quiz and tap "I ordered this" to start building history.</div>';
+    summary.textContent = '';
+    return;
+  }
+  const cuisineCounts = {};
+  history.forEach(h => { cuisineCounts[h.cuisine] = (cuisineCounts[h.cuisine] || 0) + 1; });
+  const topCuisine = Object.entries(cuisineCounts).sort((a,b) => b[1]-a[1])[0];
+  summary.textContent = `${history.length} order${history.length === 1 ? '' : 's'} logged · most ordered: ${topCuisine[0]} (${topCuisine[1]}x)`;
+  list.innerHTML = history.slice().reverse().map(h => {
+    const date = new Date(h.ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return `<div class="history-item">
+      <div>
+        <div class="hi-main">${esc(h.dish)}</div>
+        <div class="hi-sub">${esc(h.cuisine)}${h.restaurant ? ' · ' + esc(h.restaurant) : ''}</div>
+      </div>
+      <div class="hi-sub">${date}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- QUIZ ENGINE ---------- */
+function headerText(q) {
+  return tone === 'girly' ? q.header.girly : q.header.neutral;
+}
+
+function getSkipState() {
+  return { cravingValue, desiredSize };
+}
+
+function updateProgress() {
+  const pct = Math.min(100, Math.round((qIndex / questions.length) * 100));
+  progressFill.style.width = pct + '%';
+  progressLabel.textContent = tone === 'girly' ? 'DIAGNOSIS IN PROGRESS' : 'IN PROGRESS';
+}
+
+function renderQuestion() {
+  const q = questions[qIndex];
+  progressWrap.style.display = 'block';
+  qLabel.textContent = `Question ${qIndex + 1} of ${questions.length}`;
+  qText.textContent = headerText(q);
+  qOptions.innerHTML = '';
+  updateProgress();
+
+  if (q.type === 'single') {
+    continueRow.style.display = 'none';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.innerHTML = `<span class="emoji">${opt.emoji}</span><span>${opt.label}</span>`;
+      btn.onclick = () => selectSingle(q, opt);
+      qOptions.appendChild(btn);
+    });
+  } else if (q.type === 'multi') {
+    multiSelected = [];
+    continueRow.style.display = 'block';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.innerHTML = `<span class="emoji">${opt.emoji}</span><span>${opt.label}</span><span class="check">✓</span>`;
+      btn.onclick = () => toggleMulti(btn, opt);
+      qOptions.appendChild(btn);
+    });
+  }
+}
+
+function selectSingle(q, opt) {
+  picks.push({ q: headerText(q), a: opt.label });
+  if (opt.tags) opt.tags.forEach(t => bag[t] = (bag[t] || 0) + 1);
+  if (opt.size) desiredSize = opt.size;
+  if (q.id === 'meal') mealTime = opt.value;
+  if (q.id === 'craving') cravingValue = opt.value;
+  if (q.id === 'budget') budgetFilter = opt.budget;
+  if (q.id === 'side') sideChoice = opt.label;
+  if (q.id === 'dessert') dessertChoice = opt.value;
+  advance();
+}
+
+function toggleMulti(btn, opt) {
+  if (opt.value === 'none') {
+    document.querySelectorAll('#qOptions .opt').forEach(b => b.classList.remove('checked'));
+    btn.classList.add('checked');
+    multiSelected = ['none'];
+    return;
+  }
+  multiSelected = multiSelected.filter(v => v !== 'none');
+  document.querySelectorAll('#qOptions .opt').forEach(b => {
+    if (b.textContent.includes('Nothing')) b.classList.remove('checked');
+  });
+  const idx = multiSelected.indexOf(opt.value);
+  if (idx >= 0) { multiSelected.splice(idx, 1); btn.classList.remove('checked'); }
+  else { multiSelected.push(opt.value); btn.classList.add('checked'); }
+}
+
+continueBtn.onclick = () => {
+  const q = questions[qIndex];
+  const selectedOpts = q.options.filter(o => multiSelected.includes(o.value));
+  const labels = selectedOpts.map(o => o.label);
+  picks.push({ q: headerText(q), a: labels.length ? labels.join(', ') : 'None selected' });
+
+  if (q.id === 'dietary') {
+    dietaryFilters = multiSelected.filter(v => v !== 'none');
+  } else if (q.id === 'format') {
+    selectedOpts.forEach(o => { if (o.tags) o.tags.forEach(t => bag[t] = (bag[t] || 0) + 1); });
+  }
+  advance();
+};
+
+function advance() {
+  qIndex++;
+  const skipState = getSkipState();
+  while (qIndex < questions.length && questions[qIndex].shouldSkip && questions[qIndex].shouldSkip(skipState)) {
+    qIndex++;
+  }
+  if (qIndex < questions.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+/* ---------- DISH SELECTION ---------- */
+function passesDietary(d) {
+  for (const f of dietaryFilters) {
+    if (f === 'vegetarian' && !d.dietary.vegetarian) return false;
+    if (f === 'vegan' && !d.dietary.vegan) return false;
+    if (f === 'dairyFree' && !d.dietary.dairyFree) return false;
+    if (f === 'noCheese' && d.contains_cheese) return false;
+    if (f === 'glutenFree' && !d.dietary.glutenFree) return false;
+    if (f === 'nutFree' && !d.dietary.nutFree) return false;
+    if (f === 'noSeafood' && d.dietary.seafood) return false;
+    if (f === 'noRedMeat' && d.dietary.redMeat) return false;
+  }
+  return true;
+}
+
+function pickDish() {
+  let pool = dishes.slice();
+
+  // 1. Breakfast gate — runs first since it changes the whole eligible pool
+  if (mealTime === 'breakfast') {
+    const breakfastPool = pool.filter(d => d.breakfast);
+    pool = breakfastPool.length ? breakfastPool : pool;
+  } else {
+    pool = pool.filter(d => !d.breakfast);
+  }
+
+  // 2. "Sweet" as main event — treat dessert-heavy dishes as the recommendation, not an add-on
+  if (cravingValue === 'sweet') {
+    const dessertPool = pool.filter(d => d.dessertHeavy);
+    pool = dessertPool.length ? dessertPool : pool;
+  } else {
+    pool = pool.filter(d => !d.dessertHeavy);
+  }
+
+  // 3. Dietary hard filter
+  const dietPool = pool.filter(passesDietary);
+  pool = dietPool.length ? dietPool : pool; // fallback if constraints are unsatisfiable
+
+  // 4. Budget soft filter (skipped entirely if "doesn't matter" was chosen)
+  if (budgetFilter) {
+    const narrowed = pool.filter(d => d.budget <= budgetFilter);
+    if (narrowed.length > 0) pool = narrowed;
+  }
+
+  // 5. Score by tag overlap (vibe/occasion/craving/texture/format all live in the same bag)
+  const dishHistCount = {}, cuisineHistCount = {};
+  history.forEach(h => {
+    dishHistCount[h.dish] = (dishHistCount[h.dish] || 0) + 1;
+    cuisineHistCount[h.cuisine] = (cuisineHistCount[h.cuisine] || 0) + 1;
+  });
+
+  const scored = pool.map(d => {
+    const rawTagScore = d.tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
+    // Normalize by tag count so dishes with more tags don't win purely on volume
+    let score = d.tags.length ? rawTagScore / d.tags.length : 0;
+    if (desiredSize && d.size === desiredSize) score += 0.4;
+    score += (dishHistCount[d.name] || 0) * 0.3;
+    score += (cuisineHistCount[d.cuisine] || 0) * 0.15;
+    return { dish: d, score };
+  });
+
+  const bestScore = Math.max(...scored.map(s => s.score));
+  const topCandidates = scored.filter(s => s.score >= bestScore - 0.001).map(s => s.dish);
+  return topCandidates[Math.floor(Math.random() * topCandidates.length)];
+}
+
+function showResult(externalDish, chatReasoning) {
+  const dish = externalDish || pickDish();
+  currentResultDish = dish;
+  const orderNum = Math.floor(1000 + Math.random() * 9000);
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const headerLabel = tone === 'girly' ? "TONIGHT'S DIAGNOSIS" : "TONIGHT'S PICK";
+  const fromChat = !!externalDish;
+
+  const usedHistory = history.some(h => h.dish === dish.name || h.cuisine === dish.cuisine);
+
+  const answerLines = fromChat
+    ? [`<div class="r-line r-small" style="margin-bottom:6px;">${tone === 'girly' ? 'WHY THIS PICK' : 'REASONING'}</div>`,
+       `<div class="r-line r-desc">${esc(chatReasoning || 'Based on what you told me.')}</div>`]
+    : [`<div class="r-line r-small" style="margin-bottom:6px;">${tone === 'girly' ? 'YOUR SYMPTOMS, DECODED' : 'YOUR ANSWERS'}</div>`,
+       ...picks.map(p => `<div class="r-line r-item"><span>${p.a}</span><span>✓</span></div>`)];
+
+  const lines = [
+    `<div class="r-line r-center r-order-num">ORDER #${orderNum} · ${time}</div>`,
+    `<div class="r-line r-center r-small">${fromChat ? (tone === 'girly' ? 'FROM OUR CHAT' : 'CHAT RECOMMENDATION') : headerLabel}</div>`,
+    `<div class="r-dash r-line"></div>`,
+    `<div class="r-line r-center r-title">${esc(dish.emoji)} ${esc(dish.name)}</div>`,
+    `<div class="r-line r-center r-cuisine">${esc(dish.cuisine)}</div>`,
+    `<div class="r-line r-desc">${esc(dish.desc)}</div>`,
+    `<div class="r-dash r-line"></div>`,
+    ...answerLines,
+    `<div class="r-dash r-line"></div>`,
+    !fromChat && sideChoice && !sideChoice.startsWith('None') ? `<div class="r-line r-pairing">+ side: ${sideChoice}</div>` : '',
+    !fromChat && (dessertChoice === 'yes' || dessertChoice === 'maybe') && !dish.dessertHeavy ? `<div class="r-line r-pairing">+ pairs well with ${pairings[dish.cuisine] || 'something sweet'}</div>` : '',
+    !fromChat && dessertChoice === 'pretending' ? `<div class="r-line r-pairing">(no judgment either way)</div>` : '',
+    usedHistory ? `<div class="r-line r-history-note">Refined using your order history</div>` : '',
+    `<div class="r-line r-total"><span>TOTAL</span><span>ON THE HOUSE 💫</span></div>`,
+    `<div class="r-line r-barcode"></div>`,
+    `<div class="r-line r-center r-small" style="margin-top:8px;">THANK YOU, COME AGAIN</div>`
+  ];
+
+  const receipt = document.getElementById('receiptBody');
+  receipt.innerHTML = lines.join('');
+  const lineEls = receipt.querySelectorAll('.r-line');
+  lineEls.forEach((el, i) => { el.style.animationDelay = `${i * 0.045}s`; });
+
+  document.getElementById('findBtn').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dish.name + ' restaurants near me')}`;
+  document.getElementById('logForm').classList.remove('show');
+  document.getElementById('savedNote').style.display = 'none';
+  document.getElementById('restaurantInput').value = '';
+  document.getElementById('logBtn').disabled = false;
+  document.getElementById('logBtn').textContent = '✅ I ORDERED THIS';
+
+  loadDishPhoto(dish);
+  loadNearbyMap(dish);
+
+  progressFill.style.width = '100%';
+  showScreen('result');
+}
+
+/* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
+function loadDishPhoto(dish) {
+  const img = document.getElementById('dishPhoto');
+  const fallback = document.getElementById('dishPhotoFallback');
+  const keywords = dish.query.replace(' delivery near me', '').trim().split(/\s+/).join(',');
+  img.classList.remove('hide');
+  fallback.classList.remove('show');
+  fallback.textContent = dish.emoji;
+  img.onerror = () => { img.classList.add('hide'); fallback.classList.add('show'); };
+  img.src = `https://loremflickr.com/480/300/${encodeURIComponent(keywords)}?lock=${Date.now()}`;
+}
+
+/* ---------- NEARBY MAP (no-API-key embed, uses geolocation if allowed) ---------- */
+function loadNearbyMap(dish) {
+  const frame = document.getElementById('mapFrame');
+  const note = document.getElementById('mapNote');
+  const searchTerm = `${dish.name} restaurants`;
+
+  let settled = false;
+  const setMap = (query, usedLocation) => {
+    if (settled) return;
+    settled = true;
+    frame.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=13&output=embed`;
+    note.textContent = usedLocation
+      ? "Showing results near your current location."
+      : "Location not shared — showing general results. Tap \"Find it near me\" to search from your device.";
+  };
+
+  if (!navigator.geolocation) { setMap(`${searchTerm} near me`, false); return; }
+
+  // getCurrentPosition's own `timeout` only starts once permission is granted,
+  // so an unanswered permission prompt fires neither callback and would leave
+  // the map blank indefinitely. This watchdog is what actually bounds the wait.
+  setTimeout(() => setMap(`${searchTerm} near me`, false), 4000);
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => setMap(`${searchTerm} near ${pos.coords.latitude},${pos.coords.longitude}`, true),
+    () => setMap(`${searchTerm} near me`, false),
+    { timeout: 4000 }
+  );
+}
+
+/* ---------- CONTROLS ---------- */
+function resetState() {
+  qIndex = 0; bag = {}; picks = []; desiredSize = null; mealTime = null; cravingValue = null;
+  budgetFilter = null; dietaryFilters = []; sideChoice = null;
+  dessertChoice = null; multiSelected = [];
+}
+
+function startQuiz(selectedTone) {
+  tone = selectedTone;
+  tagline.textContent = tone === 'girly'
+    ? "A very official diagnosis, delivered by takeout."
+    : "A quick set of questions to land on tonight's order.";
+  resetState();
+  showScreen('quiz');
+  renderQuestion();
+}
+
+document.getElementById('toneGirly').onclick = () => startQuiz('girly');
+document.getElementById('toneNeutral').onclick = () => startQuiz('neutral');
+
+document.getElementById('retakeBtn').onclick = () => {
+  progressWrap.style.display = 'none';
+  chatMessages = [];
+  chatBusy = false;
+  chatMessagesEl.innerHTML = '';
+  showScreen('start');
+};
+
+document.getElementById('logBtn').onclick = () => {
+  document.getElementById('logForm').classList.add('show');
+};
+
+document.getElementById('saveLogBtn').onclick = () => {
+  const restaurant = document.getElementById('restaurantInput').value.trim();
+  saveHistoryEntry({
+    ts: Date.now(),
+    dish: currentResultDish.name,
+    cuisine: currentResultDish.cuisine,
+    restaurant: restaurant || null
+  });
+  document.getElementById('logForm').classList.remove('show');
+  document.getElementById('savedNote').style.display = 'block';
+  document.getElementById('logBtn').disabled = true;
+  document.getElementById('logBtn').textContent = 'SAVED ✓';
+};
+
+historyBadge.onclick = () => { renderHistoryScreen(); showScreen('history'); };
+document.getElementById('backFromHistoryBtn').onclick = () => showScreen('start');
+document.getElementById('clearHistoryBtn').onclick = () => clearHistory();
+
+/* ---------- CHAT MODE (LLM-powered, via a serverless function) ---------- */
+const chatMessagesEl = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
+const chatNotConfigured = document.getElementById('chatNotConfigured');
+
+function openChat() {
+  showScreen('chat');
+  if (!CHAT_CONFIGURED) {
+    chatNotConfigured.style.display = 'block';
+    chatInput.disabled = true;
+    chatSendBtn.disabled = true;
+    return;
+  }
+  chatNotConfigured.style.display = 'none';
+  chatInput.disabled = false;
+  chatSendBtn.disabled = false;
+  if (chatMessages.length === 0) {
+    const greeting = tone === 'girly'
+      ? "Hey! Tell me what you're in the mood for — mood, cravings, budget, whatever's on your mind — and I'll figure out what you should order."
+      : "Tell me what you're in the mood for and I'll help you land on something to order.";
+    appendChatBubble('assistant', greeting);
+    chatMessages.push({ role: 'assistant', content: greeting });
+  }
+}
+
+function appendChatBubble(role, text) {
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+  bubble.textContent = text;
+  chatMessagesEl.appendChild(bubble);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  return bubble;
+}
+
+function showTypingIndicator() {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble assistant typing';
+  bubble.id = 'typingIndicator';
+  bubble.innerHTML = '<span></span><span></span><span></span>';
+  chatMessagesEl.appendChild(bubble);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  const text = chatInput.value.trim();
+  if (!text || chatBusy || !CHAT_CONFIGURED) return;
+
+  appendChatBubble('user', text);
+  chatMessages.push({ role: 'user', content: text });
+  chatInput.value = '';
+  chatBusy = true;
+  chatSendBtn.disabled = true;
+  showTypingIndicator();
+
+  try {
+    const res = await fetch(CHAT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatMessages, tone })
+    });
+
+    removeTypingIndicator();
+
+    if (!res.ok) {
+      appendChatBubble('assistant', "Something went wrong reaching the kitchen. Try again?");
+      chatBusy = false;
+      chatSendBtn.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.type === 'recommendation' && data.dish) {
+      appendChatBubble('assistant', data.reply);
+      chatMessages.push({ role: 'assistant', content: data.reply });
+      setTimeout(() => {
+        showResult(data.dish, data.reply);
+      }, 700);
+    } else {
+      const reply = data.reply || "Not sure how to respond to that — try rephrasing?";
+      appendChatBubble('assistant', reply);
+      chatMessages.push({ role: 'assistant', content: reply });
+      chatBusy = false;
+      chatSendBtn.disabled = false;
+    }
+  } catch (e) {
+    removeTypingIndicator();
+    appendChatBubble('assistant', "Couldn't reach the chat backend. Check CHAT_ENDPOINT is set and the function is deployed.");
+    chatBusy = false;
+    chatSendBtn.disabled = false;
+  }
+}
+
+document.getElementById('chatEntryBtn').onclick = openChat;
+document.getElementById('chatBackBtn').onclick = () => showScreen('start');
+chatSendBtn.onclick = sendChatMessage;
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendChatMessage();
+});
+
+/* ---------- INIT ---------- */
+loadHistory();
+</script>
+</body>
+</html>

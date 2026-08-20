@@ -1,0 +1,78 @@
+# Manually-triggered preview deploy.
+#
+# Run it from the Actions tab ("Preview" → "Run workflow"), or with the CLI:
+#   gh workflow run preview.yml --ref <branch>
+#
+# It runs the pipeline test first, then publishes the app to GitHub Pages and
+# prints the URL in the job summary. Deliberately dispatch-only: nothing
+# deploys on its own.
+#
+# One-time setup: Settings → Pages → Source = "GitHub Actions".
+name: Preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a newer run supersede one already in flight, but never cancel a deploy
+# that is midway through publishing.
+concurrency:
+  group: preview
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Pipeline sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run filter-pipeline sweep
+        run: node tests/pipeline.test.mjs
+
+  deploy:
+    name: Deploy to Pages
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage the site
+        # Pages serves index.html at the root, and the app is a single file at
+        # the repo root, so copy rather than move — keeping the original name
+        # working as a direct link too.
+        run: |
+          mkdir -p _site
+          cp diagnose-your-craving.html _site/index.html
+          cp diagnose-your-craving.html _site/diagnose-your-craving.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Report the URL
+        run: |
+          {
+            echo "### Preview deployed"
+            echo
+            echo "<${{ steps.deploy.outputs.page_url }}>"
+            echo
+            echo "Built from \`${{ github.ref_name }}\` @ \`${{ github.sha }}\`."
+          } >> "$GITHUB_STEP_SUMMARY"
