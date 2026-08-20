@@ -184,7 +184,12 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 
 .alt-section { width: 100%; margin-top: 16px; }
 .alt-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
-.alt-item { background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
+.alt-item {
+  width: 100%; background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px;
+  margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; text-align: left;
+  font-family: inherit; cursor: pointer; transition: border-color 0.15s ease;
+}
+.alt-item:hover { border-color: var(--accent); }
 .alt-item .alt-emoji { font-size: 18px; }
 .alt-item .alt-name { font-family: 'Fraunces', serif; font-size: 13.5px; margin-bottom: 2px; }
 .alt-item .alt-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
@@ -946,6 +951,13 @@ function tallyTags(tags) {
   return tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
 }
 
+// Reusable so swapping to an alternate (selectAlternative) can regenerate
+// this line for whichever dish is now shown, not just the original winner.
+function whyTextFor(dish, richness, flavourLabel) {
+  const matchedTags = dish.tags.filter(t => bag[t] > 0);
+  return `You want ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour, and ${dish.name} brings ${matchedTags.length ? matchedTags.slice(0, 3).join(', ') : 'exactly that'}.`;
+}
+
 function buildCravingProfile(winner, scored) {
   const hunger = HUNGER_LABELS[desiredSize] || 'A proper meal';
 
@@ -992,10 +1004,10 @@ function buildCravingProfile(winner, scored) {
   if (!dontWant.length) dontWant.push('Anything that misses what you asked for');
 
   const summary = `You're craving ${hunger.toLowerCase()} with ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour — not just something to fill space.`;
-  const why = `You want ${richness.toLowerCase()} richness and ${flavourLabel.toLowerCase()} flavour, and ${winner.name} brings ${matchedTags.length ? matchedTags.slice(0, 3).join(', ') : 'exactly that'}.`;
+  const why = whyTextFor(winner, richness, flavourLabel);
 
   return {
-    archetype, matchPct, summary, why,
+    archetype, matchPct, summary, why, richness, flavourLabel,
     attrs: [
       { icon: '🍽', label: 'Hunger', value: hunger },
       { icon: '🧀', label: 'Richness', value: richness },
@@ -1060,20 +1072,23 @@ function showCravingProfile(profile) {
   showScreen('profile');
 }
 
-function showResult(externalDish, chatReasoning, analysis) {
-  const dish = externalDish || pickDish();
+// Renders the dish into the result screen's DOM (receipt, photo, map,
+// alternates) without touching screen visibility or scroll position — shared
+// by showResult() (first reveal) and selectAlternative() (swapping which
+// dish is shown without re-triggering the reveal/scroll).
+function renderResultContent(dish, chatReasoning, analysis) {
   currentResultDish = dish;
-  const fromChat = !!externalDish && !analysis;
+  const fromChat = !analysis;
 
   document.getElementById('resultKicker').style.display = analysis ? 'block' : 'none';
 
   const altSection = document.getElementById('altSection');
   if (analysis && analysis.alternates.length) {
     document.getElementById('altList').innerHTML = analysis.alternates.map(d => `
-      <div class="alt-item">
+      <button type="button" class="alt-item" data-dish="${esc(d.name)}">
         <span class="alt-emoji">${esc(d.emoji)}</span>
         <div><div class="alt-name">${esc(d.name)}</div><div class="alt-desc">${esc(d.desc)}</div></div>
-      </div>`).join('');
+      </button>`).join('');
     altSection.style.display = 'block';
   } else {
     altSection.style.display = 'none';
@@ -1087,9 +1102,13 @@ function showResult(externalDish, chatReasoning, analysis) {
 
   let reasoningHtml = [];
   if (analysis) {
+    // Recomputed for `dish` rather than read off analysis.profile.why, so
+    // swapping to an alternate (selectAlternative) shows reasoning for
+    // whichever dish is actually on screen, not the original winner.
+    const why = whyTextFor(dish, analysis.profile.richness, analysis.profile.flavourLabel);
     reasoningHtml = [
       `<div class="r-line r-reasoning-label">WHY THIS MATCHES</div>`,
-      `<div class="r-line r-reasoning">${esc(analysis.profile.why)}</div>`
+      `<div class="r-line r-reasoning">${esc(why)}</div>`
     ];
   } else if (fromChat) {
     reasoningHtml = [
@@ -1124,6 +1143,11 @@ function showResult(externalDish, chatReasoning, analysis) {
 
   loadDishPhoto(dish);
   loadNearbyMap(dish);
+}
+
+function showResult(externalDish, chatReasoning, analysis) {
+  const dish = externalDish || pickDish();
+  renderResultContent(dish, chatReasoning, analysis);
 
   progressFill.style.width = '100%';
 
@@ -1141,6 +1165,29 @@ function showResult(externalDish, chatReasoning, analysis) {
     showScreen('result');
   }
 }
+
+// Swaps which dish is shown in the result section (main pick <-> alternate)
+// without re-running the reveal/scroll — the user is already looking at
+// this area, so re-render in place. "Find this near me" and the map update
+// to whichever dish is now selected.
+function selectAlternative(name) {
+  if (!pendingAnalysis || !currentResultDish || name === currentResultDish.name) return;
+  const pool = [pendingAnalysis.winner, ...pendingAnalysis.alternates];
+  const newMain = pool.find(d => d.name === name);
+  if (!newMain) return;
+
+  pendingAnalysis = {
+    ...pendingAnalysis,
+    winner: newMain,
+    alternates: pool.filter(d => d.name !== name),
+  };
+  renderResultContent(newMain, null, pendingAnalysis);
+}
+
+document.getElementById('altList').addEventListener('click', (e) => {
+  const item = e.target.closest('.alt-item');
+  if (item) selectAlternative(item.dataset.dish);
+});
 
 /* ---------- DISH PHOTO (keyword-matched, no API key needed) ---------- */
 function loadDishPhoto(dish) {
