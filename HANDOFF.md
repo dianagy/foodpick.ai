@@ -1191,3 +1191,36 @@ last quiz run's result even after a visit to chat. Verified end-to-end
 with Playwright (clipboard permissions granted, `navigator.share` absent
 in headless Chromium as expected): clicking the button produced the exact
 expected archetype/match%/dish/URL text on the clipboard.
+
+## 26. Jump back to edit a quiz answer
+
+Retake always restarted the whole 13-question quiz from question 1 — real
+friction for changing one answer partway through. Added a "← Back" link
+(appears once at least one question's been answered, hidden on question 1)
+that steps back one question at a time.
+
+**Implementation is a snapshot stack, not a targeted undo.** `bag` (tag
+tally) accumulates additively across questions, and several other globals
+(`desiredSize`, `mealTime`, `cravingValue`, `budgetFilter`, `dietaryFilters`,
+`sideChoice`, `dessertChoice`) get set as side effects of whichever question
+touches them — there's no per-question record of exactly what changed, so
+"subtract this question's effect" isn't something a targeted undo could do
+correctly. Instead, `answerStack` pushes a whole-state snapshot right before
+each question's answer is committed (in both `selectSingle()` and
+`continueBtn.onclick`, before any mutation), and `goBack()` just pops one and
+restores it wholesale. That makes going back N times in a row trivially
+correct — no cumulative drift, no special-casing multi-select vs single —
+since each snapshot is a clean, independent checkpoint of "state right
+before this question." `answerStack` resets alongside the rest of quiz state
+in `resetState()` (already called by `startQuiz()` on both first entry and
+retake).
+
+Deliberately does *not* try to restore a multi-select question's previously
+checked boxes — going back re-presents the question fresh via the existing
+`renderQuestion()` path, same as if you were seeing it for the first time.
+Simpler, and "re-pick from scratch" reads fine as "change this answer" UX.
+
+Verified via Playwright: back button hidden on Q1, appears after answering,
+`bag`/`picks` after going back one step from Q3 are byte-identical (via
+`JSON.stringify`) to their state right after answering Q1, and going back a
+second time correctly lands on Q1 with the button hidden again.
