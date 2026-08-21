@@ -1042,13 +1042,19 @@ fields now point at the full-size original directly; `object-fit: cover`
 in `.dish-photo-wrap` already crops to the display box regardless of
 source resolution, so this only costs load time, not correctness.
 
-**Next step after this lands:** watch the next `preview.yml` dispatch's
-"Check dish photo URLs are live" step (via its log output, not the masked
-job status) to confirm the full-size switch actually clears the 400s.
-Some dishes hit HTTP 429 (rate-limited) during the diagnostic run, but that
-run was firing two requests per dish (thumb, then a full-size retry) at
-6-way concurrency; back to one request per dish at 4-way concurrency, it
-may well clear up on its own. Any URL that still fails after that — a
-genuine 404/wrong-file case, not a transient rate limit — names the exact
-dish; re-source just that one from the sourcing notes rather than redoing
-all 39.
+**Confirmed fixed, with one caveat that turned out to be a false alarm
+about the URLs themselves.** The next real dispatch (foodpick.ai run #18)
+came back with zero HTTP 400s — the full-size switch fixed it. 10 of 38
+returned a clean 200; the other 28 came back HTTP 429, even at one request
+per dish and concurrency 4. That ruled out this test's own request pattern
+as the cause (already minimal by that point) — the far more likely
+explanation is that GitHub Actions runners share IP ranges across a huge
+volume of unrelated jobs, and Wikimedia rate-limits by IP; a real user's
+browser, on its own residential/mobile IP, doesn't carry that reputation
+and isn't expected to hit this. `dish-photos.test.mjs` now says so in a
+comment, so a future batch of 429s doesn't get mistaken for bad URLs
+again. Net result across all 38: a mix of confirmed-200 and
+inconclusive-429, zero 400/404/bad-content-type — so no dish needs
+re-sourcing right now. If a future run shows a 400, 404, or non-image
+content-type for a specific dish (not a 429), that one is the real
+signal — go re-source just that dish from the notes above.

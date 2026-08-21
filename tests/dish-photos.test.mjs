@@ -19,6 +19,15 @@
 // applies `object-fit: cover` at a fixed display size, an oversized source
 // image costs load time, not correctness -- not worth chasing whatever the
 // thumbnail endpoint wants that the sandbox that built this couldn't observe.
+//
+// A run reporting some HTTP 429s here isn't necessarily a bad URL: GitHub
+// Actions runners share IP ranges across a huge number of unrelated jobs,
+// and Wikimedia rate-limits by IP, so a burst of runner-originated requests
+// can get throttled even at low concurrency and one request per dish. A
+// real user's browser, on their own residential/mobile IP, doesn't share
+// that reputation. Treat a 429 here as inconclusive for that URL, not
+// confirmation it's broken -- an HTTP 400/404/415 or a non-image
+// content-type is the real signal to go re-source that dish's photo.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
