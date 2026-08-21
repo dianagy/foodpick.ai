@@ -1005,38 +1005,28 @@ function weightedTally(tags) {
   return tags.reduce((sum, t) => sum + tagWeight(t), 0);
 }
 
-// Each entry is the full closing phrase, not just an adjective -- a fixed
-// " Seeker" suffix on every single one (an earlier version) read as
-// mechanical. "Adventure Seeker" earns "Seeker"; "Sweet Tooth" doesn't need
-// anything after it; "Heat Chaser" wants "Chaser", not "Seeker". Matching
-// the ending to how the word is actually said out loud is what makes it
-// feel like a real label instead of a generated one.
+// Reverted to the original vocabulary and algorithm from when Craving
+// Analysis first shipped -- raw bag[] counts, no TAG_SOURCE_COUNT
+// weighting, no compound blending. (Richness and flavourLabel below still
+// use the weighted tally -- that fix stands; this revert is scoped to the
+// archetype/mood word only, per explicit direction.)
 const MOOD_WORDS = [
-  { tag: 'comfort', word: 'Comfort Craver' },
-  { tag: 'treat', word: 'Indulgence Chaser' },
-  { tag: 'bold', word: 'Adventure Seeker' },
+  { tag: 'comfort', word: 'Comfort Seeker' },
+  { tag: 'treat', word: 'Indulgence Seeker' },
+  { tag: 'bold', word: 'Bold Flavor Chaser' },
   { tag: 'spicy', word: 'Heat Chaser' },
-  { tag: 'healthy', word: 'Freshness Fanatic' },
-  { tag: 'fresh', word: 'Freshness Fanatic' },
+  { tag: 'healthy', word: 'Freshness Seeker' },
+  { tag: 'fresh', word: 'Freshness Seeker' },
   { tag: 'sweet', word: 'Sweet Tooth' },
-  { tag: 'savory', word: 'Savory Purist' },
-  { tag: 'crispy', word: 'Crunch Hunter' },
-  { tag: 'crunchy', word: 'Crunch Hunter' },
-  { tag: 'creamy', word: 'Creamy Craver' },
-  { tag: 'cheesy', word: 'Cheese Lover' },
-  { tag: 'fancy', word: 'Fine Dining Type' },
 ];
 
-// Picks the single strongest mood by weighted tally (see TAG_SOURCE_COUNT
-// above for why it's weighted, not raw counts).
 function pickMoodWord() {
-  const scores = {};
+  let moodWord = 'Flavor Seeker', bestMoodCount = 0;
   MOOD_WORDS.forEach(({ tag, word }) => {
-    const w = tagWeight(tag);
-    if (w > 0) scores[word] = Math.max(scores[word] || 0, w);
+    const c = bag[tag] || 0;
+    if (c > bestMoodCount) { bestMoodCount = c; moodWord = word; }
   });
-  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  return ranked.length ? ranked[0][0] : 'Open-Minded Eater';
+  return moodWord;
 }
 
 const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };

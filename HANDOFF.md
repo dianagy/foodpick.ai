@@ -939,3 +939,34 @@ Distinct archetypes across a 3,000-trial sweep: 115 (was 111 with the
 uniform-Seeker version — essentially unchanged, since variety was already
 coming from the weighted tally in section 16, not the suffix), top
 concentration unchanged at ~5%.
+
+## 19. Archetype wording reverted to the original — sections 17/18 undone
+
+Explicit direction: revert the archetype/mood-word naming back to the
+version from when Craving Analysis first shipped (section 14), and stop
+there — no further iteration in this pass.
+
+`MOOD_WORDS` and `pickMoodWord()` are back to the original 7-entry
+vocabulary and algorithm verbatim (`Comfort Seeker`, `Indulgence Seeker`,
+`Bold Flavor Chaser`, `Heat Chaser`, `Freshness Seeker`, `Sweet Tooth`),
+using raw `bag[]` counts with no `TAG_SOURCE_COUNT` weighting and no
+compound blending — undoing both the section 16 mood-word reweighting and
+the section 17/18 vocabulary expansion and suffix-variety work.
+
+**Deliberately scoped to the mood word only.** `TAG_SOURCE_COUNT` /
+`tagWeight()` / `weightedTally()` are untouched and still drive richness
+and the flavour-label ranking — that part of section 16 fixed a real bug
+(richness's "High" bucket collapsing) and wasn't part of this complaint,
+so it stays. Only `pickMoodWord()`'s own tally reverted to raw counts.
+
+Consequence, expected and accepted: the original "comfort dominates"
+skew is back for archetypes specifically — a 3,000-trial sweep now shows
+"American Comfort Seeker" at 12.6% (matching section 15's original
+finding almost exactly), vs. 5-6% concentration with either of the two
+since-reverted attempts. Richness stays healthy (39/27/26/8% spread,
+unaffected by this revert). If archetype variety becomes a priority
+again, sections 16-18 document three different approaches already tried
+(weighted tally + compound blend, weighted tally + varied single-word
+suffixes, weighted tally + natural per-mood closing phrases) and why each
+one's follow-up attempt was reverted, which should save re-deriving them
+from scratch.
