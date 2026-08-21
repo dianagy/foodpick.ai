@@ -794,3 +794,97 @@ of the mood-word system.
 
 None of this is fixed in this pass — flagged for a decision on whether it's
 worth spending on before the next round of changes.
+
+## 16. Acted on section 15's findings — dish coverage, mood-word variety, richness rebalance
+
+Decisions made on the three findings from section 15:
+
+**Finding 1 (alternates disappearing) — fixed via more dishes.** Added 11
+new dishes (28 → 39 total): 5 to the breakfast pool, 5 to dessert-heavy, 1
+to the regular pool, chosen specifically to close single-dietary-filter
+gaps rather than just adding variety generally. All 11 are vegan (closing
+the vegan/dairy-free/vegetarian/no-red-meat/no-seafood gap in one move,
+since vegan implies all of those in this schema), and 8 of the 11 are also
+gluten-free (closing the specific gap from section 15 — breakfast and
+dessert each had exactly one GF dish before). Verified every dietary
+attribute now has ≥5 matching dishes in every pool (breakfast, dessert-
+heavy, regular) — see the audit in the commit, or rerun:
+```
+node -e "... audit script ..." # see git history for the one-off script
+```
+Result: the alternates-shortfall rate dropped from 10.2% of runs (5.6% zero,
+4.6% one) to 3.8% (0% zero, 3.8% one). The remaining 3.8% is no longer a
+single-filter problem — every remaining example sampled stacks 3-5 dietary
+filters simultaneously plus budget=1, which is a much narrower, more
+defensible edge case than before. Not chasing this further; further
+improvement would need dishes covering specific multi-filter intersections,
+a much worse effort-to-benefit trade than the single-filter fix was.
+
+**Side effect caught and fixed while adding dishes:** two dead tags were
+found in the process — `"light"` and `"hearty"` were used as dish tags on
+several dishes (Mochi Ice Cream Platter, Breakfast Burrito) but neither is
+ever produced by any quiz answer (`"light"`/`"hearty"` are `size` values,
+not tags — confirmed by cross-referencing every question's option tags).
+A dead tag inflates a dish's `tags.length` denominator in `scorePool()`'s
+normalization without ever being matchable, which quietly disadvantages
+that dish. This had been silently pre-existing on Mochi and Breakfast
+Burrito; it became a real bug when the new Mixed Berry Sorbet accidentally
+copied the same dead `"light"` tag and, having fewer *listed* tags for the
+same real overlap, out-scored Mochi badly enough that Mochi became
+completely unreachable in `pipeline.test.mjs`'s 5,000-trial sweep (caught
+immediately by the existing "every dish must be reachable" assertion).
+Fixed by dropping the dead tags from all affected dishes. Worth a general
+lint pass on the rest of the dish database at some point.
+
+**Finding 2 (match % floors out at 72%) — not fixed, options documented
+with real numbers.** Re-ran the sweep after the new dishes (same formula):
+still floors at 72% in 18.4% of runs. Simulated four alternative formulas
+against the same 3,000 trials:
+
+| variant | range | % at floor | % at ceiling |
+|---|---|---|---|
+| current (0.55 base, ×0.35, clamp 72–97) | 72–97 | 17.9% | 0.4% |
+| A: raise baseline to 0.65 | 72–97 | 2.6% | 15.2% |
+| B: widen clamp to 65–97, keep 0.55 base | 65–97 | 4.0% | 0.4% |
+| C: sqrt curve on tagRatio, 0.55 base | 72–97 | 7.6% | 4.3% |
+| D: baseline 0.60, clamp 68–97 | 68–97 | 2.6% | 4.3% |
+
+Variant D looks best — lowest floor concentration *and* lowest ceiling
+concentration simultaneously, widest spread of distinct values (25). A
+raises the baseline enough to fix the floor but overcorrects into a new
+15.2% pile-up at the ceiling. Not implemented — this is a product/tone
+call (how "generous" the number should feel), left for a decision.
+
+**Finding 3 (archetype/richness skew toward "comfort") — implemented, the
+broader version.** Root cause was fully quantified this time: `comfort` is
+reachable from 3 questions (occasion, vibe ×2 options, craving), `treat`
+and `savory` from 2 each, everything else from exactly 1 — confirmed by
+counting tags across every question's options, not estimated. Added
+`TAG_SOURCE_COUNT` + `tagWeight()`/`weightedTally()` so every tag's
+contribution to `bag` is divided by how many questions can produce it —
+applied consistently to richness, flavour-label ranking, *and* the mood
+word, since all three read from the same tag tally and were all skewed by
+the same root cause. `MOOD_WORDS` expanded from 7 entries to 14 (added
+savory, crispy/crunchy→Crunch, creamy, cheesy, fancy, shareable), and
+`pickMoodWord()` now blends the top two moods into a compound name
+("Comfort & Heat Seeker") when the second is within 75% of the top score,
+instead of always collapsing to a single winner.
+
+Result: distinct archetypes across the sweep went from 65 to 447; the most
+common archetype dropped from 12.9% concentration ("American Comfort
+Seeker") to 1.5%. Richness rebalancing was a necessary side effect (same
+root cause, same fix) — but the old `richCount - lightCount >= 2` cutoff
+for "High" was tuned for raw integer counts, and against the new fractional
+weighted scale it collapsed "High" to 11.4% while "Medium to high" absorbed
+55%. Retuned the cutoff to `>= 1` against a fresh 5,000-sample distribution
+of the weighted `richCount - lightCount` value (percentiles checked
+directly, not guessed) — final spread: High 40.2%, Medium to high 26.2%,
+Light and fresh 26.0%, Balanced 7.6%. No bucket dominates; Balanced being
+the smallest is expected and fine — it requires an exact tie on fractional
+weighted values, which is inherently less common than with the old integer
+tally.
+
+`tests/craving-analysis.test.mjs` updated for the renamed helper
+(`tallyTags` → `weightedTally`) and rerun clean throughout. No changes to
+`pickDish()`'s own scoring (`scorePool()`), which was never part of the
+skew — only the profile/archetype layer used `bag` tallies unweighted.

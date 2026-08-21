@@ -578,6 +578,10 @@ const dishes = [
     tags: ["fresh","crunchy","savory","healthy","plate","bowl","shareable"],
     dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
     desc: "Crispy outside, soft inside, dangerously easy to eat all of.", query: "falafel and hummus plate delivery near me" },
+  { name: "Jackfruit Tacos", cuisine: "Mexican", emoji: "🌮", size: "light", budget: 2, contains_cheese: false,
+    tags: ["savory","fresh","spicy","healthy","wrap","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Slow-pulled jackfruit doing a surprisingly convincing impression of carnitas.", query: "jackfruit tacos delivery near me" },
 
   /* ---- Breakfast/brunch dishes (Q1 = Breakfast/brunch filters to only these) ---- */
   { name: "Full English Breakfast", cuisine: "British", emoji: "🍳", size: "hearty", budget: 2, contains_cheese: false,
@@ -589,7 +593,7 @@ const dishes = [
     dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
     desc: "Smashed avocado, good bread, a little chili flake. Reliable brunch order.", query: "avocado toast delivery near me" },
   { name: "Breakfast Burrito", cuisine: "Mexican", emoji: "🌯", size: "hearty", budget: 1, contains_cheese: true,
-    breakfast: true, tags: ["savory","cheesy","hearty","wrap"],
+    breakfast: true, tags: ["savory","cheesy","wrap"],
     dietary: { vegetarian: false, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: true },
     desc: "Eggs, cheese, and breakfast meats rolled up for eating on the move.", query: "breakfast burrito delivery near me" },
   { name: "Fluffy Pancakes", cuisine: "American", emoji: "🥞", size: "medium", budget: 1, contains_cheese: false,
@@ -600,6 +604,26 @@ const dishes = [
     breakfast: true, tags: ["savory","spicy","comfort","soft","plate"],
     dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
     desc: "Eggs poached in a spiced tomato sauce, mopped up with bread.", query: "shakshuka delivery near me" },
+  { name: "Tofu Scramble Bowl", cuisine: "American", emoji: "🌱", size: "medium", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["savory","healthy","fresh","bowl"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Turmeric-gold tofu, greens, and just enough black salt to taste like eggs anyway.", query: "tofu scramble bowl delivery near me" },
+  { name: "Overnight Oats with Berries", cuisine: "American", emoji: "🫐", size: "light", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["sweet","fresh","soft","bowl"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Made the night before so morning-you has one less decision to make.", query: "overnight oats delivery near me" },
+  { name: "Mexican Breakfast Bowl", cuisine: "Mexican", emoji: "🥣", size: "hearty", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["savory","spicy","bowl"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Black beans, rice, salsa, avocado — all the burrito, none of the tortilla.", query: "vegan breakfast bowl delivery near me" },
+  { name: "Coconut Chia Pudding", cuisine: "Brunch", emoji: "🥥", size: "light", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["sweet","creamy","fresh","bowl"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Coconut milk, chia, and mango — dessert-for-breakfast that's allowed.", query: "chia pudding delivery near me" },
+  { name: "Vegan French Toast", cuisine: "French", emoji: "🍞", size: "medium", budget: 1, contains_cheese: false,
+    breakfast: true, tags: ["sweet","soft","comfort","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Thick-cut bread, cinnamon batter, maple syrup doing the heavy lifting.", query: "vegan french toast delivery near me" },
 
   /* ---- Dessert-heavy dishes (Q5 = Sweet treats these as the main event) ---- */
   { name: "Molten Chocolate Lava Cake", cuisine: "French", emoji: "🍫", size: "light", budget: 1, contains_cheese: false,
@@ -615,13 +639,33 @@ const dishes = [
     dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
     desc: "Warm, gooey, iced — basically a hug you can order.", query: "cinnamon rolls delivery near me" },
   { name: "Mochi Ice Cream Platter", cuisine: "Japanese", emoji: "🍡", size: "light", budget: 1, contains_cheese: false,
-    dessertHeavy: true, tags: ["sweet","fresh","light","treat","plate"],
+    dessertHeavy: true, tags: ["sweet","fresh","treat","plate"],
     dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
     desc: "Chewy, cold, and dangerously easy to keep eating 'just one more' of.", query: "mochi ice cream delivery near me" },
   { name: "Churros with Chocolate Dip", cuisine: "Mexican", emoji: "🥖", size: "light", budget: 1, contains_cheese: false,
     dessertHeavy: true, tags: ["sweet","crunchy","treat","bold","plate"],
     dietary: { vegetarian: true, vegan: false, dairyFree: false, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
-    desc: "Crispy, sugar-dusted, made for dunking until the sauce is gone.", query: "churros delivery near me" }
+    desc: "Crispy, sugar-dusted, made for dunking until the sauce is gone.", query: "churros delivery near me" },
+  { name: "Vegan Chocolate Mousse", cuisine: "French", emoji: "🍫", size: "light", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","creamy","treat","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Whipped aquafaba and dark chocolate — silkier than the dairy version, honestly.", query: "vegan chocolate mousse delivery near me" },
+  { name: "Coconut Rice Pudding", cuisine: "Thai", emoji: "🍚", size: "medium", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","creamy","comfort","bowl"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Sticky rice simmered in coconut milk until it stops being a side dish.", query: "coconut rice pudding delivery near me" },
+  { name: "Mixed Berry Sorbet", cuisine: "Italian", emoji: "🍓", size: "light", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","fresh","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Just fruit, sugar, and ice — the dessert that pretends it's not one.", query: "berry sorbet delivery near me" },
+  { name: "Vegan Apple Crumble", cuisine: "British", emoji: "🍎", size: "medium", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","crunchy","comfort","treat","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: true, nutFree: true, seafood: false, redMeat: false },
+    desc: "Cinnamon-baked apples under an oat crumble that earns the vanilla drizzle.", query: "vegan apple crumble delivery near me" },
+  { name: "Vegan Banana Bread", cuisine: "American", emoji: "🍌", size: "medium", budget: 1, contains_cheese: false,
+    dessertHeavy: true, tags: ["sweet","soft","comfort","treat","plate"],
+    dietary: { vegetarian: true, vegan: true, dairyFree: true, glutenFree: false, nutFree: true, seafood: false, redMeat: false },
+    desc: "Overripe bananas turned into the only acceptable use for them.", query: "vegan banana bread delivery near me" }
 ];
 
 const pairings = {
@@ -930,20 +974,59 @@ function pickDish() {
 const RICH_TAGS = ['creamy', 'cheesy', 'comfort', 'treat', 'crispy', 'juicy'];
 const LIGHT_TAGS = ['fresh', 'healthy', 'crunchy'];
 const FLAVOUR_TAGS = ['spicy', 'savory', 'sweet', 'bold'];
-const MOOD_WORDS = [
-  { tag: 'comfort', word: 'Comfort Seeker' },
-  { tag: 'treat', word: 'Indulgence Seeker' },
-  { tag: 'bold', word: 'Bold Flavor Chaser' },
-  { tag: 'spicy', word: 'Heat Chaser' },
-  { tag: 'healthy', word: 'Freshness Seeker' },
-  { tag: 'fresh', word: 'Freshness Seeker' },
-  { tag: 'sweet', word: 'Sweet Tooth' },
-];
-const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };
 
-function tallyTags(tags) {
-  return tags.reduce((sum, t) => sum + (bag[t] || 0), 0);
+// Some tags are reachable from more than one quiz question -- comfort from
+// occasion ("Surviving a rough day"), vibe ("Zero energy" / "Comfort mode"),
+// and craving ("Warm and cozy") is 3 sources; treat and savory each have 2 --
+// which would otherwise let them structurally dominate every tally built
+// from `bag` (richness, flavour, and the mood word below). Weighting each
+// tag's contribution by its source count gives every tag roughly one vote
+// per question, not one vote per option.
+const TAG_SOURCE_COUNT = { comfort: 3, treat: 2, savory: 2 };
+function tagWeight(t) {
+  return (bag[t] || 0) / (TAG_SOURCE_COUNT[t] || 1);
 }
+function weightedTally(tags) {
+  return tags.reduce((sum, t) => sum + tagWeight(t), 0);
+}
+
+const MOOD_WORDS = [
+  { tag: 'comfort', word: 'Comfort' },
+  { tag: 'treat', word: 'Indulgence' },
+  { tag: 'bold', word: 'Bold-Flavor' },
+  { tag: 'spicy', word: 'Heat' },
+  { tag: 'healthy', word: 'Freshness' },
+  { tag: 'fresh', word: 'Freshness' },
+  { tag: 'sweet', word: 'Sweet-Tooth' },
+  { tag: 'savory', word: 'Savory' },
+  { tag: 'crispy', word: 'Crunch' },
+  { tag: 'crunchy', word: 'Crunch' },
+  { tag: 'creamy', word: 'Creamy-Comfort' },
+  { tag: 'cheesy', word: 'Cheese-First' },
+  { tag: 'fancy', word: 'Special-Occasion' },
+  { tag: 'shareable', word: 'Sharing' },
+];
+
+// Picks the strongest mood word by weighted tally, and blends in a second
+// mood as a compound name ("Comfort & Heat Seeker") when it's a close
+// second, rather than always collapsing to a single winner -- the single-
+// winner version was the main source of "___ Comfort Seeker" repetition.
+function pickMoodWord() {
+  const scores = {};
+  MOOD_WORDS.forEach(({ tag, word }) => {
+    const w = tagWeight(tag);
+    if (w > 0) scores[word] = Math.max(scores[word] || 0, w);
+  });
+  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  if (!ranked.length) return 'Flavor Seeker';
+  const [topWord, topScore] = ranked[0];
+  if (ranked.length > 1 && ranked[1][1] >= topScore * 0.75) {
+    return `${topWord} & ${ranked[1][0]} Seeker`;
+  }
+  return `${topWord} Seeker`;
+}
+
+const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };
 
 function whyTextFor(dish, richness, flavourLabel) {
   const matchedTags = dish.tags.filter(t => bag[t] > 0);
@@ -953,15 +1036,18 @@ function whyTextFor(dish, richness, flavourLabel) {
 function buildCravingProfile(winner, scored) {
   const hunger = HUNGER_LABELS[desiredSize] || 'A proper meal';
 
-  const richCount = tallyTags(RICH_TAGS);
-  const lightCount = tallyTags(LIGHT_TAGS);
+  const richCount = weightedTally(RICH_TAGS);
+  const lightCount = weightedTally(LIGHT_TAGS);
   let richness;
-  if (richCount - lightCount >= 2) richness = 'High — indulgent and comforting';
+  // Threshold tuned for the weighted scale above (comfort counts 1/3, treat
+  // 1/2 per occurrence), not the old raw-integer counts -- verified against
+  // a 5,000-trial sweep to give a non-degenerate spread across all 4 buckets.
+  if (richCount - lightCount >= 1) richness = 'High — indulgent and comforting';
   else if (richCount > lightCount) richness = 'Medium to high';
   else if (lightCount > richCount) richness = 'Light and fresh';
   else richness = 'Balanced';
 
-  const flavourPresent = FLAVOUR_TAGS.filter(t => bag[t] > 0).sort((a, b) => (bag[b] || 0) - (bag[a] || 0));
+  const flavourPresent = FLAVOUR_TAGS.filter(t => bag[t] > 0).sort((a, b) => tagWeight(b) - tagWeight(a));
   const flavourLabel = flavourPresent.length
     ? flavourPresent.slice(0, 3).map(t => t[0].toUpperCase() + t.slice(1)).join(' · ')
     : 'Balanced, no strong lean';
@@ -973,12 +1059,7 @@ function buildCravingProfile(winner, scored) {
   const rankedCuisines = Object.entries(cuisineCount).sort((a, b) => b[1] - a[1]).map(([c]) => c);
   const direction = rankedCuisines.slice(0, 2).join(' / ') || winner.cuisine;
 
-  let moodWord = 'Flavor Seeker', bestMoodCount = 0;
-  MOOD_WORDS.forEach(({ tag, word }) => {
-    const c = bag[tag] || 0;
-    if (c > bestMoodCount) { bestMoodCount = c; moodWord = word; }
-  });
-  const archetype = `${rankedCuisines[0] || winner.cuisine} ${moodWord}`;
+  const archetype = `${rankedCuisines[0] || winner.cuisine} ${pickMoodWord()}`;
 
   // Match %: grounded in how much of the winning dish's own tags the answers actually hit,
   // kept in a believable 72-97 band rather than a raw ratio that could read as 20% or 100%.

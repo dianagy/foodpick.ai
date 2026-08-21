@@ -44,7 +44,6 @@ const source = [
     'const RICH_TAGS',
     "const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };"
   ),
-  extractBlock('function tallyTags(tags) {', '}'),
   extractBlock('function whyTextFor(dish, richness, flavourLabel) {', '}'),
   extractBlock('function buildCravingProfile(winner, scored) {', '}'),
   extractBlock('function computeCravingAnalysis() {', '}'),
