@@ -30,10 +30,16 @@ console.log(`${dishes.length} dishes, ${withPhoto.length} with a pinned photo, $
 
 const failures = [];
 
+// Wikimedia's CDN rejects requests with no User-Agent (returns a blanket
+// 400, not a per-file 404) -- Node's bare fetch() sends none by default,
+// unlike a browser's <img> tag, which always does. Their user-agent policy
+// asks for something identifying the app: https://meta.wikimedia.org/wiki/User-Agent_policy
+const USER_AGENT = 'foodpick.ai-dish-photo-check/1.0 (https://github.com/dianagy/foodpick.ai)';
+
 async function checkOne(dish) {
   let res;
   try {
-    res = await fetch(dish.photo, { method: 'GET', redirect: 'follow' });
+    res = await fetch(dish.photo, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
   } catch (e) {
     failures.push(`${dish.name}: fetch failed -- ${e.message} (${dish.photo})`);
     return;
