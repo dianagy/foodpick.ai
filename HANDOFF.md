@@ -888,3 +888,33 @@ tally.
 (`tallyTags` → `weightedTally`) and rerun clean throughout. No changes to
 `pickDish()`'s own scoring (`scorePool()`), which was never part of the
 skew — only the profile/archetype layer used `bag` tallies unweighted.
+
+## 17. Archetype naming simplified — dropped the compound blend
+
+Feedback after testing section 16's changes: archetypes were reading as
+wordy and overly specific, e.g. *"Mediterranean Creamy-Comfort &
+Special-Occasion Seeker"*. The culprit was the compound-mood feature added
+in section 16 (blending the top two moods with "&" when close) stacked on
+top of hyphenated multi-word labels ("Creamy-Comfort", "Special-Occasion",
+"Cheese-First", "Bold-Flavor") — each individually reasonable, but
+combined they produced names with 4-5 stitched-together concepts.
+
+Fix: dropped the compound blend entirely (`pickMoodWord()` now always
+returns the single strongest mood, no more `&`), and renamed every
+`MOOD_WORDS` label to a short, single-concept word — Bold-Flavor→Adventure,
+Sweet-Tooth→Sweet Tooth, Creamy-Comfort→Creamy, Cheese-First→Cheesy,
+Special-Occasion→Fancy. Dropped `shareable`→Sharing entirely; "Sharing
+Seeker" didn't read as a real personality archetype.
+
+The weighted tally from section 16 (`TAG_SOURCE_COUNT`/`tagWeight`) still
+does the real work of avoiding "comfort" dominance even with a single
+winner — average archetype length dropped from 34.4 to 22.5 characters
+(max 54 → 31), and distinct archetypes across a 3,000-trial sweep went
+from 447 (with compounding, arguably too specific to be a real "type") to
+108 (single mood only), with the most common archetype still only 5.2%
+of runs — no single archetype dominates, and every one reads as a
+plausible short label rather than a stitched-together sentence.
+
+Richness (which reads from the same weighted tally but not from
+`pickMoodWord()`) was unaffected — still spreads across all 4 buckets, no
+change needed there.

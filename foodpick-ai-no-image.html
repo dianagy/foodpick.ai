@@ -990,27 +990,28 @@ function weightedTally(tags) {
   return tags.reduce((sum, t) => sum + tagWeight(t), 0);
 }
 
+// Short, single-concept words on purpose -- compounding two of these with
+// "&" (an earlier version) read as clunky and over-specific ("Mediterranean
+// Creamy-Comfort & Special-Occasion Seeker"). One clean word beats two
+// stitched together.
 const MOOD_WORDS = [
   { tag: 'comfort', word: 'Comfort' },
   { tag: 'treat', word: 'Indulgence' },
-  { tag: 'bold', word: 'Bold-Flavor' },
+  { tag: 'bold', word: 'Adventure' },
   { tag: 'spicy', word: 'Heat' },
   { tag: 'healthy', word: 'Freshness' },
   { tag: 'fresh', word: 'Freshness' },
-  { tag: 'sweet', word: 'Sweet-Tooth' },
+  { tag: 'sweet', word: 'Sweet Tooth' },
   { tag: 'savory', word: 'Savory' },
   { tag: 'crispy', word: 'Crunch' },
   { tag: 'crunchy', word: 'Crunch' },
-  { tag: 'creamy', word: 'Creamy-Comfort' },
-  { tag: 'cheesy', word: 'Cheese-First' },
-  { tag: 'fancy', word: 'Special-Occasion' },
-  { tag: 'shareable', word: 'Sharing' },
+  { tag: 'creamy', word: 'Creamy' },
+  { tag: 'cheesy', word: 'Cheesy' },
+  { tag: 'fancy', word: 'Fancy' },
 ];
 
-// Picks the strongest mood word by weighted tally, and blends in a second
-// mood as a compound name ("Comfort & Heat Seeker") when it's a close
-// second, rather than always collapsing to a single winner -- the single-
-// winner version was the main source of "___ Comfort Seeker" repetition.
+// Picks the single strongest mood by weighted tally (see TAG_SOURCE_COUNT
+// above for why it's weighted, not raw counts).
 function pickMoodWord() {
   const scores = {};
   MOOD_WORDS.forEach(({ tag, word }) => {
@@ -1018,12 +1019,7 @@ function pickMoodWord() {
     if (w > 0) scores[word] = Math.max(scores[word] || 0, w);
   });
   const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  if (!ranked.length) return 'Flavor Seeker';
-  const [topWord, topScore] = ranked[0];
-  if (ranked.length > 1 && ranked[1][1] >= topScore * 0.75) {
-    return `${topWord} & ${ranked[1][0]} Seeker`;
-  }
-  return `${topWord} Seeker`;
+  return ranked.length ? `${ranked[0][0]} Seeker` : 'Flavor Seeker';
 }
 
 const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };
