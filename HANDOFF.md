@@ -1224,3 +1224,54 @@ Verified via Playwright: back button hidden on Q1, appears after answering,
 `bag`/`picks` after going back one step from Q3 are byte-identical (via
 `JSON.stringify`) to their state right after answering Q1, and going back a
 second time correctly lands on Q1 with the button hidden again.
+
+## 27. PWA / installability
+
+Added `manifest.webmanifest`, `sw.js`, and an `icons/` set so the app can be
+installed (Chrome "Install app" / Android "Add to Home screen" / iOS
+Safari "Add to Home Screen") and reopen without a network connection.
+
+**Icons were generated once via Playwright, not by a committed script.**
+The obvious approach — a `scripts/generate-icons.mjs` that screenshots the
+brand mark at each required size — was written and worked, but requires
+`import { chromium } from 'playwright'`, and this project deliberately has
+no `package.json`/`node_modules` at all. Committing a script that silently
+depends on an unlisted global package would have been worse than not having
+a script: it looks reproducible but isn't, for anyone without Playwright
+already on their machine. Dropped the script; the three PNGs in `icons/`
+(`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, 180×180) are the
+actual deliverable, generated from a simple HTML source (the marquee's
+smile mark, white on the `--accent` terracotta) rendered at exact pixel
+viewport sizes. Regenerating them (if the brand mark ever changes) is a
+manual one-off, same as any other exported image asset.
+
+**The service worker has no hardcoded precache list, deliberately.** The
+obvious `cache.addAll(['./', './index.html', ...])` approach breaks because
+this same file is served under three different real names depending on
+context — `foodpick-ai.html` locally, `foodpick-ai.html` **or**
+`foodpick-ai-no-image.html` on Pages, plus `index.html` at each of those
+Pages paths — so there's no single filename a precache list could name
+correctly everywhere. Instead `sw.js` is a runtime cache-then-network: every
+successful same-origin GET gets written to the cache as it's fetched, and a
+failed fetch (offline) falls back to whatever was cached for that exact
+URL last time. Cross-origin requests (Google Fonts, the maps embed, dish
+photos, the chat API) pass straight through, untouched by the cache.
+
+**GitHub Pages project-page paths drove the staging change.** Pages serves
+this repo at `<user>.github.io/foodpick.ai/`, not the domain root, so a
+root-absolute link like `/manifest.webmanifest` would resolve to the wrong
+URL from either deployed path. Used plain relative links
+(`href="manifest.webmanifest"`) instead, which requires `manifest.webmanifest`,
+`sw.js`, and `icons/` to exist alongside *both* `index.html` copies —
+`preview.yml`'s "Stage the site" step now copies all three into `_site/`
+**and** `_site/no-image/`, not just the root. Caught and fixed a copy-paste
+slip while editing that step: an unrelated line (the no-image variant's
+direct-filename copy) briefly changed destination before being reverted
+back to its original, untouched behavior.
+
+Verified end-to-end with Playwright: manifest link resolves, service worker
+reaches `active` state, and — after one online page load to let the SW take
+control (the very first, uncontrolled load is never cacheable, standard SW
+behavior) plus a second online reload to populate the cache — a third,
+fully offline reload still renders the real page (title, start button) with
+no navigation failure.

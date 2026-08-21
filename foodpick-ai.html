@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="foodpick.ai">
 <meta name="theme-color" content="#FBF6F0">
 <meta name="description" content="The last 'idk what to eat' you'll ever type. A quick quiz or a quick chat — either way you land on a takeout order.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
 <title>foodpick.ai</title>
 <script>
 // Runs before first paint so there's no flash of the wrong theme. The full
@@ -1719,6 +1722,14 @@ if (window.matchMedia) {
 }
 
 applyTheme(effectiveTheme());
+
+// Registration failure (unsupported browser, file:// origin, etc.) just
+// means no offline/installable support -- everything else still works.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 
 /* ---------- INIT ---------- */
 loadHistory();

@@ -73,13 +73,21 @@ jobs:
         # Two variants, two URLs, one deploy: the default (with-photo) app at
         # the root, and the no-photo fallback under /no-image/. Pages serves
         # index.html at each path, so copy rather than move — keeping the
-        # original filenames working as direct links too.
+        # original filenames working as direct links too. manifest.webmanifest,
+        # icons/, and sw.js are duplicated into both directories (not just the
+        # root) since GitHub Pages project pages aren't served from the domain
+        # root, so a relative link/fetch from /no-image/ needs its own copy
+        # alongside it rather than a root-absolute path.
         run: |
           mkdir -p _site/no-image
           cp foodpick-ai.html _site/index.html
           cp foodpick-ai.html _site/foodpick-ai.html
           cp foodpick-ai-no-image.html _site/no-image/index.html
           cp foodpick-ai-no-image.html _site/foodpick-ai-no-image.html
+          cp manifest.webmanifest sw.js _site/
+          cp manifest.webmanifest sw.js _site/no-image/
+          cp -r icons _site/icons
+          cp -r icons _site/no-image/icons
 
       - uses: actions/configure-pages@v5
 

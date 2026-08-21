@@ -28,12 +28,25 @@ see **Preview deploy** below.
 Open `foodpick-ai.html` in a browser. That's it.
 
 For a closer match to production — geolocation is blocked on `file://`, so the
-map can only show its generic fallback there:
+map can only show its generic fallback there, and the service worker (below)
+needs a real origin:
 
 ```bash
 python3 -m http.server 8000
 # http://localhost:8000/foodpick-ai.html
 ```
+
+## Installable / works offline
+
+`manifest.webmanifest` + `sw.js` make the app installable (Chrome's "Install
+app" / Android's "Add to Home screen" / iOS Safari's "Add to Home Screen")
+and let it reopen without a network connection after at least one successful
+visit. The service worker is a plain runtime cache-then-network — no
+hardcoded file list — since this same app is served under different real
+filenames (`foodpick-ai.html`, `foodpick-ai-no-image.html`, `index.html` on
+Pages). `icons/` holds the three generated icon sizes (192, 512, and the
+180×180 Apple touch icon); see `HANDOFF.md` section 27 for how they were made
+and why they aren't produced by a committed script.
 
 ## What needs a backend
 
@@ -72,6 +85,9 @@ public, so Pages works on the free plan.
 | `foodpick-ai-no-image.html` | Same app, photo removed. Generated, not committed — see **Two variants** above |
 | `scripts/build-no-image.mjs` | Generates `foodpick-ai-no-image.html` from `foodpick-ai.html` |
 | `scripts/ship.sh` | One command: run the test suites, commit, push |
+| `manifest.webmanifest` | PWA manifest — installability, icons, theme color |
+| `sw.js` | Service worker — runtime cache-then-network, enables offline reopen |
+| `icons/` | Generated app icons (192, 512, Apple touch) |
 | `BRANDING.md` | Identity, color, type, voice, and layout reference |
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |

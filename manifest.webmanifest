@@ -1,0 +1,14 @@
+{
+  "name": "foodpick.ai",
+  "short_name": "foodpick.ai",
+  "description": "The last 'idk what to eat' you'll ever type.",
+  "start_url": "./foodpick-ai.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FBF6F0",
+  "theme_color": "#FBF6F0",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
