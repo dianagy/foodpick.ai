@@ -1146,3 +1146,27 @@ dish. The dish line only appears once a dish has actually repeated
 just "your only dish," which reads oddly as an insight. Verified with
 seeded `localStorage` history (5 orders, 3 of the same dish) via a
 Playwright screenshot.
+
+## 24. Live dietary-filter feedback
+
+Checking dietary boxes previously gave no feedback until the very end of
+the 13-question quiz — over-filter (e.g. vegan + gluten-free + nut-free)
+and you only found out after finishing. Added a live "N dishes still
+match" line under the dietary question's checkboxes, updating on every
+toggle.
+
+Deliberately scoped to just the dietary question, not every multi-select
+(`format` also uses `toggleMulti`) — dietary is the one hard filter
+answered mid-quiz, so it's the one point where "you're about to
+over-filter" is worth surfacing before the result. Reuses
+`getEligiblePool()`/`passesDietary()` directly against `dietaryFilters` set
+live from the in-progress selection (then restored to `[]` — the real
+commit still happens in `continueBtn.onclick`, unchanged), rather than a
+second copy of the same filtering logic that could drift from what the
+pipeline actually does at the end. If every dish gets filtered out, the
+line says so explicitly rather than showing "0" and leaving the user to
+guess whether that's a bug — matches `getEligiblePool()`'s own real
+behavior of falling back to the unfiltered pool rather than ever handing
+back nothing. Verified via Playwright screenshots stepping through the
+quiz to the dietary question and toggling combinations (vegetarian: 39→X,
++vegan, +nut-free).

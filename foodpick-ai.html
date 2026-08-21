@@ -295,6 +295,9 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .history-item .hi-main { font-weight: 500; font-family: 'Fraunces'; }
 .history-item .hi-sub { color: var(--muted); font-size: 11px; }
 .history-summary { font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 12px; }
+.live-count { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 8px; min-height: 14px; }
+.live-count.zero { color: var(--accent); }
+
 .history-insight {
   background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
   padding: 14px 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;
@@ -358,6 +361,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
       <div class="q-label" id="qLabel"></div>
       <div class="q-text" id="qText"></div>
       <div class="options" id="qOptions"></div>
+      <div class="live-count" id="liveCount"></div>
       <div class="continue-row" id="continueRow" style="display:none;">
         <button class="btn" id="continueBtn">CONTINUE</button>
       </div>
@@ -947,6 +951,8 @@ function renderQuestion() {
   } else if (q.type === 'multi') {
     multiSelected = [];
     continueRow.style.display = 'block';
+    document.getElementById('liveCount').textContent = '';
+    document.getElementById('liveCount').classList.remove('zero');
     q.options.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'opt';
@@ -974,6 +980,7 @@ function toggleMulti(btn, opt) {
     document.querySelectorAll('#qOptions .opt').forEach(b => b.classList.remove('checked'));
     btn.classList.add('checked');
     multiSelected = ['none'];
+    updateDietaryLiveCount();
     return;
   }
   multiSelected = multiSelected.filter(v => v !== 'none');
@@ -983,6 +990,36 @@ function toggleMulti(btn, opt) {
   const idx = multiSelected.indexOf(opt.value);
   if (idx >= 0) { multiSelected.splice(idx, 1); btn.classList.remove('checked'); }
   else { multiSelected.push(opt.value); btn.classList.add('checked'); }
+  updateDietaryLiveCount();
+}
+
+// Only the dietary question's checkboxes get live feedback -- it's the one
+// hard filter answered before the result, so it's the one place "you're
+// about to over-filter" is worth surfacing before the quiz ends. Reuses
+// getEligiblePool()/passesDietary() directly (against dietaryFilters set
+// live from the in-progress selection) rather than a second copy of the
+// same filtering logic, so this can't drift from what the pipeline actually
+// does at the end.
+function updateDietaryLiveCount() {
+  const q = questions[qIndex];
+  const label = document.getElementById('liveCount');
+  if (!q || q.id !== 'dietary') return;
+  const selected = multiSelected.filter(v => v !== 'none');
+  if (selected.length === 0) {
+    label.textContent = '';
+    label.classList.remove('zero');
+    return;
+  }
+  dietaryFilters = selected;
+  const count = getEligiblePool().length;
+  dietaryFilters = []; // restore -- committed for real by continueBtn.onclick, not here
+  if (count === 0) {
+    label.textContent = "No dishes match all of these — we'll loosen the filter rather than show you nothing";
+    label.classList.add('zero');
+  } else {
+    label.textContent = `${count} dish${count === 1 ? '' : 'es'} still match${count === 1 ? 'es' : ''}`;
+    label.classList.remove('zero');
+  }
 }
 
 continueBtn.onclick = () => {
