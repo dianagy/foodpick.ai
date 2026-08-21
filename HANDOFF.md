@@ -970,3 +970,65 @@ again, sections 16-18 document three different approaches already tried
 suffixes, weighted tally + natural per-mood closing phrases) and why each
 one's follow-up attempt was reverted, which should save re-deriving them
 from scratch.
+
+## 20. Real dish photos — one pinned URL per dish, replacing LoremFlickr
+
+The photo problem flagged all the way back in section 12/§3 (LoremFlickr's
+keyword search "loaded fine but returned generic/unrelated stock images")
+is fixed properly now instead of worked around: `loadDishPhoto()` no longer
+builds a keyword search URL. Every dish carries a specific `photo` field —
+one pinned Wikimedia Commons image URL chosen for that exact dish, or
+`null` for the one dish with no confident match. `loadDishPhoto()` just
+sets `img.src = dish.photo`, falling back to the emoji (same as before) for
+either `photo: null` or an `onerror` on load — one code path covers both
+cases now instead of a keyword-search-always-returns-something design.
+
+**Sourcing was constrained by this session's own network policy.** The
+sandbox blocks egress to `upload.wikimedia.org`, `images.unsplash.com`,
+`images.pexels.com`, and `live.staticflickr.com` entirely (confirmed via
+direct `curl`/`fetch` — same class of block noted earlier for
+`dianagy.github.io`, see the mid-session detour where GitHub Pages had to
+be checked via the GitHub API instead of a direct fetch). A background
+agent sourced all 39 URLs via `WebSearch` (a separate mechanism that does
+work here) to find real Commons file pages, then mechanically constructed
+each direct file URL from MediaWiki's public, deterministic filename-hash
+scheme (`MD5(filename)` → `/first-hex-char/first-two-hex/filename`) — a
+real, standard algorithm, not a guess, but one that was never confirmed to
+actually resolve, since nothing in this session can reach the host to
+check. **38 of 39 have a URL; 1 (Jackfruit Tacos) has no confident match at
+all** — Commons has plenty of raw-jackfruit photos but nothing depicting a
+prepared jackfruit taco dish, so it stays on the emoji fallback.
+
+Several of the 38 are flagged lower-confidence in the sourcing notes (kept
+in this session's scratchpad, not committed) — worth a manual look if they
+turn out wrong: Overnight Oats with Berries (berries not confirmed in
+shot), Mexican Breakfast Bowl (a real Chipotle bowl — correct dish
+category, not confirmed vegan), Coconut Chia Pudding and Coconut Rice
+Pudding (coconut specifically not confirmed), Belgian Waffles & Ice Cream
+(ice cream not confirmed in frame), Mixed Berry Sorbet (the actual file is
+a *cranberry* sorbet — same visual category, not an exact match), Vegan
+Chocolate Mousse (a licorice-flavored variant), and Falafel & Hummus Plate
+(a long, date-prefixed filename with higher transcription risk, and
+reportedly a very large original — thumbnailed to 600px here regardless).
+
+**Real verification happens in CI, not in this session.** Added
+`tests/dish-photos.test.mjs`, which fetches every `photo` URL and checks
+HTTP 200 + an `image/*` content-type + a non-trivial response size. It
+can't pass locally in this sandbox (no route to the host at all — see
+above), but GitHub Actions runners aren't network-restricted, so wiring it
+into `preview.yml` makes every future dispatch the actual live check this
+session couldn't do itself. It's `continue-on-error: true` — informational,
+not a deploy gate — since a dead link already degrades to the emoji rather
+than breaking anything, so one bad URL shouldn't hold back the other 37
+working ones. Check the step's own outcome (not just the job's overall
+green checkmark) to see if any URLs need fixing after the first real dispatch.
+
+All 600px-wide Commons thumbnail URLs (`.../thumb/<hash>/<filename>/600px-
+<filename>`) rather than full originals, for reasonable load size — the
+`.dish-photo-wrap` box is a 16:10 crop anyway, so no need for the source
+resolution.
+
+**Next step after this lands:** watch the first real `preview.yml` dispatch
+— that dispatch's "Check dish photo URLs are live" step is the first actual
+verification these 38 URLs will ever get. Any failures there name the exact
+dish and URL; re-source just those individually rather than redoing all 39.

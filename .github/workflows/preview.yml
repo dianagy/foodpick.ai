@@ -41,6 +41,14 @@ jobs:
       - name: Run craving-analysis sweep
         run: node tests/craving-analysis.test.mjs
 
+      - name: Check dish photo URLs are live
+        # Informational, not a deploy gate -- a broken photo URL already
+        # falls back to the dish's emoji in the app, so one bad link
+        # shouldn't hold back every other working one. Check this step's
+        # own outcome (not just the job's) to see if any URLs need fixing.
+        continue-on-error: true
+        run: node tests/dish-photos.test.mjs
+
   deploy:
     name: Deploy to Pages
     needs: test

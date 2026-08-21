@@ -67,6 +67,7 @@ public, so Pages works on the free plan.
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |
 | `tests/craving-analysis.test.mjs` | Sweeps the answer space against the craving-analysis layer (profile, match %, alternates) |
+| `tests/dish-photos.test.mjs` | Checks every dish's pinned photo URL is a live image (needs real network access) |
 | `.github/workflows/preview.yml` | Manual (`workflow_dispatch`) test + Pages preview deploy |
 | `HANDOFF.md` | Design history, scoring rationale, and open items |
 
@@ -75,6 +76,7 @@ public, so Pages works on the free plan.
 ```bash
 node tests/pipeline.test.mjs
 node tests/craving-analysis.test.mjs
+node tests/dish-photos.test.mjs
 ```
 
 `pipeline.test.mjs` runs 5,000 random playthroughs asserting the filter
@@ -85,6 +87,13 @@ match %, archetype text, alternates — asserting nothing malformed leaks into
 a user-facing string; see `HANDOFF.md` section 15 for real (non-crashing)
 issues it surfaced. Both extract their logic straight out of the HTML, so
 there's no second copy to drift.
+
+`dish-photos.test.mjs` fetches every dish's pinned photo URL and checks it
+resolves to a real image — needs actual internet access, so it won't pass in
+a network-sandboxed environment (that's expected, not a bug in the test).
+It's wired into `preview.yml` as non-blocking (`continue-on-error`), since a
+dead photo link already falls back to the dish's emoji rather than breaking
+anything.
 
 ## Enabling chat
 
