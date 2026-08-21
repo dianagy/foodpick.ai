@@ -1319,3 +1319,32 @@ Two more changes from the same round of feedback:
   entirely** (added in section 24) — didn't land well in testing. Removed
   the markup, CSS, and `updateDietaryLiveCount()` function outright rather
   than just hiding it, since there's no plan to bring it back in this form.
+
+## 30. Recipe link — "cook it yourself" as a third action button
+
+User feedback: add a way to get to a recipe for the dish, not just find it
+near you. Before building, mocked up two placements as real, screenshotted
+variants of the app (not just a description) — a third button in the
+primary action row, vs. a segmented "Order it / Cook it" toggle that swaps
+which action row shows. User picked the third-button version: always
+visible, one tap, smallest build; the toggle read as more polished but
+added a whole extra UI state for a fairly small feature.
+
+**What shipped:** a "📖 FIND A RECIPE" button in the main result's action
+row (`#recipeBtn`, styled `.btn.secondary` like the existing "I ordered
+this"), plus the same link added to each alternate dish's expand section
+alongside its existing "Find near me" link. Link is a plain Google search
+(`https://www.google.com/search?q=<dish> recipe`), no API key — same
+zero-dependency pattern as the existing "Find near me" links, which use a
+Google Maps search the same way.
+
+Three buttons in the primary row (Find near me / Find a recipe / I ordered
+this) wraps to two lines on a phone-width screen — expected and accepted
+as part of picking this layout over the toggle. `.alt-expand` switched from
+block layout to `display: flex; flex-direction: column; gap: 8px` to stack
+its now-two links cleanly instead of relying on an inline margin.
+
+No changes to `pickDish()`/scoring/tests — this is pure UI, no new state.
+Verified in both light and dark mode via Playwright screenshots through the
+full quiz → result flow, including an expanded alternate showing both its
+links.
