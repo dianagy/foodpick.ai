@@ -1021,14 +1021,34 @@ session couldn't do itself. It's `continue-on-error: true` — informational,
 not a deploy gate — since a dead link already degrades to the emoji rather
 than breaking anything, so one bad URL shouldn't hold back the other 37
 working ones. Check the step's own outcome (not just the job's overall
-green checkmark) to see if any URLs need fixing after the first real dispatch.
+green checkmark, which `continue-on-error` masks — pull the step's actual
+log output) to see if any URLs need fixing after a dispatch.
 
-All 600px-wide Commons thumbnail URLs (`.../thumb/<hash>/<filename>/600px-
-<filename>`) rather than full originals, for reasonable load size — the
-`.dish-photo-wrap` box is a 16:10 crop anyway, so no need for the source
-resolution.
+**First dispatch caught a real bug in the URL construction, not just
+sourcing risk.** The initial URLs pointed at Commons' `/thumb/` transform
+endpoint (`.../thumb/<hash>/<filename>/600px-<filename>`), chosen to keep
+the download small since `.dish-photo-wrap` only ever shows a 16:10 crop.
+Every single one of the 38 came back HTTP 400 — not a sourcing miss on a
+few files, a uniform failure on the transform endpoint itself. (A
+"missing User-Agent" theory was tried and ruled out first: Wikimedia's
+CDN docs ask for one, and Node's bare `fetch()` sends none by default
+unlike a browser `<img>`, but adding one made no difference.) Deriving
+each file's plain, non-thumbnail URL
+(`.../wikipedia/commons/<hash>/<filename>`, no `/thumb/` or size suffix)
+and fetching that instead came back mostly HTTP 200 — confirming the
+MD5-hash file paths themselves were right, and the bug was specifically in
+the thumbnail transform this session never got to observe. All 38 `photo`
+fields now point at the full-size original directly; `object-fit: cover`
+in `.dish-photo-wrap` already crops to the display box regardless of
+source resolution, so this only costs load time, not correctness.
 
-**Next step after this lands:** watch the first real `preview.yml` dispatch
-— that dispatch's "Check dish photo URLs are live" step is the first actual
-verification these 38 URLs will ever get. Any failures there name the exact
-dish and URL; re-source just those individually rather than redoing all 39.
+**Next step after this lands:** watch the next `preview.yml` dispatch's
+"Check dish photo URLs are live" step (via its log output, not the masked
+job status) to confirm the full-size switch actually clears the 400s.
+Some dishes hit HTTP 429 (rate-limited) during the diagnostic run, but that
+run was firing two requests per dish (thumb, then a full-size retry) at
+6-way concurrency; back to one request per dish at 4-way concurrency, it
+may well clear up on its own. Any URL that still fails after that — a
+genuine 404/wrong-file case, not a transient rate limit — names the exact
+dish; re-source just that one from the sourcing notes rather than redoing
+all 39.

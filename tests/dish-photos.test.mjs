@@ -1,14 +1,24 @@
 // Checks that every dish's pinned `photo` URL actually resolves to a live
-// image. These URLs (Wikimedia Commons) were sourced and hash-constructed
-// without live verification -- the sandbox this project was built in has no
-// network access to upload.wikimedia.org, so this check has to run somewhere
-// that does. GitHub Actions runners aren't network-restricted, so this test
-// running in CI is the real verification step, not a formality.
+// image. These URLs (Wikimedia Commons originals) were sourced and
+// hash-constructed without live verification -- the sandbox this project was
+// built in has no network access to upload.wikimedia.org, so this check has
+// to run somewhere that does. GitHub Actions runners aren't network
+// restricted, so this test running in CI is the real verification step, not
+// a formality.
 //
 //   node tests/dish-photos.test.mjs
 //
 // A dish with photo: null (no confident match was found) is intentionally
 // skipped -- the app already falls back to the dish's emoji for those.
+//
+// These are full-size originals, not /thumb/ transforms: an earlier version
+// pointed at Wikimedia's thumbnail endpoint (".../thumb/h1/h2/file/600px-file")
+// to keep the download small, but that endpoint returned a blanket HTTP 400
+// for every single dish regardless of filename, while the plain file-serving
+// URL for the same files mostly returned 200. Since `.dish-photo-wrap` already
+// applies `object-fit: cover` at a fixed display size, an oversized source
+// image costs load time, not correctness -- not worth chasing whatever the
+// thumbnail endpoint wants that the sandbox that built this couldn't observe.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -31,54 +41,23 @@ console.log(`${dishes.length} dishes, ${withPhoto.length} with a pinned photo, $
 const failures = [];
 
 // Wikimedia's CDN rejects requests with no User-Agent (returns a blanket
-// 400, not a per-file 404) -- Node's bare fetch() sends none by default,
-// unlike a browser's <img> tag, which always does. Their user-agent policy
-// asks for something identifying the app: https://meta.wikimedia.org/wiki/User-Agent_policy
+// 400) -- Node's bare fetch() sends none by default, unlike a browser's
+// <img> tag, which always does. Their user-agent policy asks for something
+// identifying the app: https://meta.wikimedia.org/wiki/User-Agent_policy
 const USER_AGENT = 'foodpick.ai-dish-photo-check/1.0 (https://github.com/dianagy/foodpick.ai)';
-
-// If the /thumb/ URL fails, derive the full-size original
-// (".../commons/<hash>/<file>") and try that instead -- diagnostic for
-// whether the failure is specific to the thumbnail transform or something
-// broader (e.g. every upload.wikimedia.org request failing regardless of
-// path shape).
-function toFullSize(thumbUrl) {
-  const marker = '/wikipedia/commons/thumb/';
-  const idx = thumbUrl.indexOf(marker);
-  if (idx === -1) return null;
-  const rest = thumbUrl.slice(idx + marker.length); // <h1>/<h2>/<file>/<width>px-<file>
-  const parts = rest.split('/');
-  if (parts.length < 3) return null;
-  const [h1, h2, file] = parts;
-  return `https://upload.wikimedia.org/wikipedia/commons/${h1}/${h2}/${file}`;
-}
-
-async function fetchOnce(url) {
-  const res = await fetch(url, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
-  await res.arrayBuffer().catch(() => {});
-  return res;
-}
 
 async function checkOne(dish) {
   let res;
   try {
-    res = await fetchOnce(dish.photo);
+    res = await fetch(dish.photo, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
+    await res.arrayBuffer().catch(() => {});
   } catch (e) {
     failures.push(`${dish.name}: fetch failed -- ${e.message} (${dish.photo})`);
     return;
   }
 
   if (!res.ok) {
-    const fullSize = toFullSize(dish.photo);
-    if (fullSize) {
-      try {
-        const res2 = await fetchOnce(fullSize);
-        failures.push(`${dish.name}: thumb HTTP ${res.status} (${dish.photo}) -- full-size fallback HTTP ${res2.status} (${fullSize})`);
-      } catch (e2) {
-        failures.push(`${dish.name}: thumb HTTP ${res.status} (${dish.photo}) -- full-size fallback fetch failed: ${e2.message} (${fullSize})`);
-      }
-    } else {
-      failures.push(`${dish.name}: HTTP ${res.status} (${dish.photo})`);
-    }
+    failures.push(`${dish.name}: HTTP ${res.status} (${dish.photo})`);
     return;
   }
   const contentType = res.headers.get('content-type') || '';
@@ -92,8 +71,12 @@ async function checkOne(dish) {
   }
 }
 
-// A handful of concurrent requests -- fast, and polite to Wikimedia.
-const CONCURRENCY = 6;
+// A handful of concurrent requests -- fast, and polite to Wikimedia. Lower
+// than it might need to be: an earlier diagnostic run that fired two
+// requests per dish (thumb + full-size fallback) at this same concurrency
+// drew some HTTP 429s partway through, so staying modest here now that it's
+// back to one request per dish.
+const CONCURRENCY = 4;
 let cursor = 0;
 async function worker() {
   while (cursor < withPhoto.length) {
