@@ -295,6 +295,12 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .history-item .hi-main { font-weight: 500; font-family: 'Fraunces'; }
 .history-item .hi-sub { color: var(--muted); font-size: 11px; }
 .history-summary { font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 12px; }
+.history-insight {
+  background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.history-insight .hi-line { font-size: 13px; }
+.history-insight .hi-line b { color: var(--accent); }
 
 @media (max-width: 400px) {
   .marquee p { font-size: 22px; }
@@ -421,7 +427,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 
     <div class="screen" id="history">
       <div class="q-label">YOUR ORDER HISTORY</div>
-      <div class="history-summary" id="historySummary"></div>
+      <div class="history-insight" id="historySummary"></div>
       <div class="history-list" id="historyList"></div>
       <div class="result-actions">
         <button class="btn secondary" id="clearHistoryBtn">🗑️ CLEAR HISTORY</button>
@@ -874,13 +880,26 @@ function renderHistoryScreen() {
   const summary = document.getElementById('historySummary');
   if (history.length === 0) {
     list.innerHTML = '<div class="history-empty">No past orders logged yet.<br>Finish a quiz and tap "I ordered this" to start building history.</div>';
-    summary.textContent = '';
+    summary.innerHTML = '';
     return;
   }
   const cuisineCounts = {};
-  history.forEach(h => { cuisineCounts[h.cuisine] = (cuisineCounts[h.cuisine] || 0) + 1; });
+  const dishCounts = {};
+  history.forEach(h => {
+    cuisineCounts[h.cuisine] = (cuisineCounts[h.cuisine] || 0) + 1;
+    dishCounts[h.dish] = (dishCounts[h.dish] || 0) + 1;
+  });
   const topCuisine = Object.entries(cuisineCounts).sort((a,b) => b[1]-a[1])[0];
-  summary.textContent = `${history.length} order${history.length === 1 ? '' : 's'} logged · most ordered: ${topCuisine[0]} (${topCuisine[1]}x)`;
+  const topDish = Object.entries(dishCounts).sort((a,b) => b[1]-a[1])[0];
+
+  const lines = [`${history.length} order${history.length === 1 ? '' : 's'} logged`];
+  lines.push(`You order <b>${esc(topCuisine[0])}</b> most often (${topCuisine[1]}×)`);
+  // Only worth calling out a favorite dish once it's actually been repeated --
+  // with 1-2 orders total, "your favorite" is just "your only" and reads oddly.
+  if (topDish[1] > 1) {
+    lines.push(`Your go-to dish is <b>${esc(topDish[0])}</b> (${topDish[1]}×)`);
+  }
+  summary.innerHTML = lines.map(l => `<div class="hi-line">${l}</div>`).join('');
   list.innerHTML = history.slice().reverse().map(h => {
     const date = new Date(h.ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
     return `<div class="history-item">

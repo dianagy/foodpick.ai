@@ -1134,3 +1134,15 @@ var(--ink)` inheritance from `body`. Verified by walking the full flow
 (start → quiz → craving profile → result, including the receipt card,
 tag pills, alternates, and map-fallback text) as screenshots under a
 simulated dark OS preference — no white leaks anywhere in the flow.
+
+## 23. Order history insight card
+
+The History screen already computed a one-line "most ordered: X (Nx)"
+summary in plain muted text — easy to miss, and cuisine-only. Upgraded to a
+proper card (matching the visual weight of the craving-profile attribute
+cards) with two lines: most-ordered cuisine, and most-ordered specific
+dish. The dish line only appears once a dish has actually repeated
+(`topDish[1] > 1`) — at 1-2 total orders, "your favorite dish" is really
+just "your only dish," which reads oddly as an insight. Verified with
+seeded `localStorage` history (5 orders, 3 of the same dish) via a
+Playwright screenshot.
