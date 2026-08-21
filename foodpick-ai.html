@@ -1005,24 +1005,26 @@ function weightedTally(tags) {
   return tags.reduce((sum, t) => sum + tagWeight(t), 0);
 }
 
-// Short, single-concept words on purpose -- compounding two of these with
-// "&" (an earlier version) read as clunky and over-specific ("Mediterranean
-// Creamy-Comfort & Special-Occasion Seeker"). One clean word beats two
-// stitched together.
+// Each entry is the full closing phrase, not just an adjective -- a fixed
+// " Seeker" suffix on every single one (an earlier version) read as
+// mechanical. "Adventure Seeker" earns "Seeker"; "Sweet Tooth" doesn't need
+// anything after it; "Heat Chaser" wants "Chaser", not "Seeker". Matching
+// the ending to how the word is actually said out loud is what makes it
+// feel like a real label instead of a generated one.
 const MOOD_WORDS = [
-  { tag: 'comfort', word: 'Comfort' },
-  { tag: 'treat', word: 'Indulgence' },
-  { tag: 'bold', word: 'Adventure' },
-  { tag: 'spicy', word: 'Heat' },
-  { tag: 'healthy', word: 'Freshness' },
-  { tag: 'fresh', word: 'Freshness' },
+  { tag: 'comfort', word: 'Comfort Craver' },
+  { tag: 'treat', word: 'Indulgence Chaser' },
+  { tag: 'bold', word: 'Adventure Seeker' },
+  { tag: 'spicy', word: 'Heat Chaser' },
+  { tag: 'healthy', word: 'Freshness Fanatic' },
+  { tag: 'fresh', word: 'Freshness Fanatic' },
   { tag: 'sweet', word: 'Sweet Tooth' },
-  { tag: 'savory', word: 'Savory' },
-  { tag: 'crispy', word: 'Crunch' },
-  { tag: 'crunchy', word: 'Crunch' },
-  { tag: 'creamy', word: 'Creamy' },
-  { tag: 'cheesy', word: 'Cheesy' },
-  { tag: 'fancy', word: 'Fancy' },
+  { tag: 'savory', word: 'Savory Purist' },
+  { tag: 'crispy', word: 'Crunch Hunter' },
+  { tag: 'crunchy', word: 'Crunch Hunter' },
+  { tag: 'creamy', word: 'Creamy Craver' },
+  { tag: 'cheesy', word: 'Cheese Lover' },
+  { tag: 'fancy', word: 'Fine Dining Type' },
 ];
 
 // Picks the single strongest mood by weighted tally (see TAG_SOURCE_COUNT
@@ -1034,7 +1036,7 @@ function pickMoodWord() {
     if (w > 0) scores[word] = Math.max(scores[word] || 0, w);
   });
   const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  return ranked.length ? `${ranked[0][0]} Seeker` : 'Flavor Seeker';
+  return ranked.length ? ranked[0][0] : 'Open-Minded Eater';
 }
 
 const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };

@@ -918,3 +918,24 @@ plausible short label rather than a stitched-together sentence.
 Richness (which reads from the same weighted tally but not from
 `pickMoodWord()`) was unaffected — still spreads across all 4 buckets, no
 change needed there.
+
+## 18. Archetype endings varied — dropped the universal "Seeker" suffix
+
+Feedback after section 17: every archetype still ended in "Seeker"
+regardless of mood, which read as mechanical rather than fun — a generated
+label, not a real one. `MOOD_WORDS` entries now store the full closing
+phrase instead of a bare adjective + fixed " Seeker" suffix, matched to how
+each word actually wants to be said: "Adventure Seeker" keeps "Seeker" (it
+fits), "Heat Chaser" and "Indulgence Chaser" use "Chaser", "Sweet Tooth"
+takes nothing at all, "Savory Purist", "Crunch Hunter", "Cheese Lover",
+"Fine Dining Type" each get their own natural ending. The empty-signal
+fallback (essentially never hit in practice) changed from "Flavor Seeker"
+to "Open-Minded Eater" for the same reason.
+
+Sample after the change: "Chinese Comfort Craver", "Thai Adventure
+Seeker", "American Sweet Tooth", "Mexican Savory Purist", "Japanese
+Creamy Craver" — no repeated suffix pattern in a random sample of 24.
+Distinct archetypes across a 3,000-trial sweep: 115 (was 111 with the
+uniform-Seeker version — essentially unchanged, since variety was already
+coming from the weighted tally in section 16, not the suffix), top
+concentration unchanged at ~5%.
