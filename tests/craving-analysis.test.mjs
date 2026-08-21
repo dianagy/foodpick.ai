@@ -10,43 +10,26 @@
 //
 //   node tests/craving-analysis.test.mjs
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import vm from 'node:vm';
+import { readAppHtml, extractBlock, extractRange } from './extract.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const html = readFileSync(join(root, 'foodpick-ai.html'), 'utf8');
-
-function extractBlock(startPattern, closer) {
-  const start = html.indexOf(startPattern);
-  if (start === -1) throw new Error(`Could not find "${startPattern}" in the HTML`);
-  const end = html.indexOf(`\n${closer}`, start);
-  if (end === -1) throw new Error(`Could not find the end of "${startPattern}"`);
-  return html.slice(start, end + closer.length + 1);
-}
-
-function extractRange(startPattern, endMarker) {
-  const start = html.indexOf(startPattern);
-  const end = html.indexOf(endMarker, start);
-  if (start === -1 || end === -1) throw new Error(`Could not find range starting at "${startPattern}"`);
-  return html.slice(start, end + endMarker.length);
-}
+const html = readAppHtml();
 
 const source = [
-  extractBlock('const questions = [', '];'),
-  extractBlock('const dishes = [', '];'),
-  extractBlock('function passesDietary(d) {', '}'),
-  extractBlock('function getEligiblePool() {', '}'),
-  extractBlock('function scorePool(pool) {', '}'),
-  extractBlock('function pickDish() {', '}'),
+  extractBlock(html, 'const questions = [', '];'),
+  extractBlock(html, 'const dishes = [', '];'),
+  extractBlock(html, 'function passesDietary(d) {', '}'),
+  extractBlock(html, 'function getEligiblePool() {', '}'),
+  extractBlock(html, 'function scorePool(pool) {', '}'),
+  extractBlock(html, 'function pickDish() {', '}'),
   extractRange(
+    html,
     'const RICH_TAGS',
     "const HUNGER_LABELS = { light: 'Light bite', medium: 'A proper meal', hearty: 'Big appetite, hearty meal' };"
   ),
-  extractBlock('function whyTextFor(dish, richness, flavourLabel) {', '}'),
-  extractBlock('function buildCravingProfile(winner, scored) {', '}'),
-  extractBlock('function computeCravingAnalysis() {', '}'),
+  extractBlock(html, 'function whyTextFor(dish, richness, flavourLabel) {', '}'),
+  extractBlock(html, 'function buildCravingProfile(winner, scored) {', '}'),
+  extractBlock(html, 'function computeCravingAnalysis() {', '}'),
   'globalThis.questions = questions; globalThis.dishes = dishes; globalThis.pickDish = pickDish;',
   'globalThis.computeCravingAnalysis = computeCravingAnalysis;',
 ].join('\n\n');

@@ -29,18 +29,12 @@
 // confirmation it's broken -- an HTTP 400/404/415 or a non-image
 // content-type is the real signal to go re-source that dish's photo.
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { readAppHtml, extractBlock } from './extract.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const html = readFileSync(join(root, 'foodpick-ai.html'), 'utf8');
-
-const start = html.indexOf('const dishes = [');
-const end = html.indexOf('\nconst pairings');
-if (start === -1 || end === -1) throw new Error('Could not locate the dishes array in the HTML');
+const html = readAppHtml();
+const dishesBlock = extractBlock(html, 'const dishes = [', '];');
 // eslint-disable-next-line no-eval
-const dishes = eval(html.slice(start, end).replace('const dishes = ', ''));
+const dishes = eval(dishesBlock.replace('const dishes = ', ''));
 
 const withPhoto = dishes.filter(d => d.photo);
 const withoutPhoto = dishes.filter(d => !d.photo);

@@ -7,31 +7,18 @@
 // The dish database and pipeline functions are extracted from the real
 // foodpick-ai.html at runtime, so there is no second copy to drift.
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import vm from 'node:vm';
+import { readAppHtml, extractBlock } from './extract.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const html = readFileSync(join(root, 'foodpick-ai.html'), 'utf8');
-
-// Pull out a top-level `const <name> = [` / `function <name>(` block by
-// scanning forward to its matching closing bracket at column 0.
-function extractBlock(startPattern, closer) {
-  const start = html.indexOf(startPattern);
-  if (start === -1) throw new Error(`Could not find "${startPattern}" in the HTML`);
-  const end = html.indexOf(`\n${closer}`, start);
-  if (end === -1) throw new Error(`Could not find the end of "${startPattern}"`);
-  return html.slice(start, end + closer.length + 1);
-}
+const html = readAppHtml();
 
 const source = [
-  extractBlock('const questions = [', '];'),
-  extractBlock('const dishes = [', '];'),
-  extractBlock('function passesDietary(d) {', '}'),
-  extractBlock('function getEligiblePool() {', '}'),
-  extractBlock('function scorePool(pool) {', '}'),
-  extractBlock('function pickDish() {', '}'),
+  extractBlock(html, 'const questions = [', '];'),
+  extractBlock(html, 'const dishes = [', '];'),
+  extractBlock(html, 'function passesDietary(d) {', '}'),
+  extractBlock(html, 'function getEligiblePool() {', '}'),
+  extractBlock(html, 'function scorePool(pool) {', '}'),
+  extractBlock(html, 'function pickDish() {', '}'),
   // Lexical declarations don't attach to the vm context object on their own.
   'globalThis.questions = questions; globalThis.dishes = dishes; globalThis.pickDish = pickDish;',
 ].join('\n\n');

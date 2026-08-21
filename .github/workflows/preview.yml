@@ -59,6 +59,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate the no-image variant
+        # foodpick-ai.html is the only source of truth in git; the no-photo
+        # fallback is derived from it here rather than hand-maintained as a
+        # second committed file that can drift.
+        run: node scripts/build-no-image.mjs
+
       - name: Stage the site
         # Two variants, two URLs, one deploy: the default (with-photo) app at
         # the root, and the no-photo fallback under /no-image/. Pages serves

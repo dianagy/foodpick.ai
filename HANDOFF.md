@@ -1058,3 +1058,42 @@ inconclusive-429, zero 400/404/bad-content-type — so no dish needs
 re-sourcing right now. If a future run shows a 400, 404, or non-image
 content-type for a specific dish (not a 429), that one is the real
 signal — go re-source just that dish from the notes above.
+
+## 21. Project-setup cleanup — generated no-image variant, shared test helper, one-command ship
+
+Three of the six project-setup friction points from an earlier brainstorm,
+acted on together since they're all mechanical and low-risk (unlike the
+other three — chat-backend setup, repo consolidation, and auto-deploy-on-push
+— which were explicitly left as-is, a product/ops call rather than something
+to just do).
+
+**`foodpick-ai-no-image.html` is no longer committed.** Every prior change
+to `foodpick-ai.html` needed a matching hand-run strip script to keep the
+no-image variant in sync — real copy-paste risk, and it doubled every diff.
+`scripts/build-no-image.mjs` now derives it from `foodpick-ai.html` via four
+regex-based strips (photo CSS, markup, the `loadDishPhoto()` call site, and
+the function itself), each of which throws with a clear message if its
+target block isn't found rather than silently producing a broken file.
+Verified byte-identical against the previously hand-maintained copy before
+removing it from git. `preview.yml`'s deploy job now runs the script before
+staging `_site/`, so the published no-image variant is always freshly
+derived from whatever `foodpick-ai.html` looked like at that commit — it
+can no longer drift. Anyone who wants a local copy runs
+`node scripts/build-no-image.mjs`; `--check` compares against an existing
+file without writing, for anyone who wants a drift check without CI.
+
+**`tests/extract.mjs`** replaces three near-identical copies of
+`extractBlock`/`extractRange` that had been hand-rolled separately in
+`pipeline.test.mjs`, `craving-analysis.test.mjs`, and (a simpler `indexOf`
+variant) `dish-photos.test.mjs`. All three now import the same two
+functions; behavior is unchanged (confirmed by re-running all three test
+suites — 5,000/3,000-trial sweeps still pass, dish extraction still finds
+all 39 dishes with 38 photos).
+
+**`scripts/ship.sh "commit message"`** bundles the manual sequence this
+session kept re-running by hand: run `pipeline.test.mjs` and
+`craving-analysis.test.mjs`, then `git add -A && git commit && git push -u
+origin <current-branch>`. Deliberately does not run
+`tests/dish-photos.test.mjs` (needs real network the dev machine may not
+have) or dispatch `preview.yml` (deploy stays a separate, explicit step per
+the auto-deploy decision above).

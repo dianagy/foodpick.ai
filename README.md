@@ -8,13 +8,20 @@ One HTML file. No build step, no accounts, no sign-in. Open it and it works.
 
 ## Two variants
 
-- `foodpick-ai.html` — default, includes a dish photo (keyword-matched via
-  LoremFlickr, falls back to the dish's emoji if the image fails to load)
+- `foodpick-ai.html` — default, includes a dish photo (one pinned Wikimedia
+  Commons photo per dish, falls back to the dish's emoji if the image fails
+  to load or a dish has no photo)
 - `foodpick-ai-no-image.html` — identical otherwise, with the photo removed.
-  Useful if the photo service is unreachable on your network; see `HANDOFF.md`
-  §12 for why this fallback exists.
+  Useful if the photo host is unreachable on your network; see `HANDOFF.md`
+  §12 for why this fallback exists. **Not committed** — `foodpick-ai.html` is
+  the only source of truth in git; generate this file with:
 
-The deploy workflow publishes both — see **Preview deploy** below.
+  ```bash
+  node scripts/build-no-image.mjs
+  ```
+
+The deploy workflow publishes both, generating the no-image variant itself —
+see **Preview deploy** below.
 
 ## Run it
 
@@ -62,12 +69,15 @@ public, so Pages works on the free plan.
 | Path | What it is |
 |---|---|
 | `foodpick-ai.html` | The entire app — HTML, CSS, and JS in one file, with photo |
-| `foodpick-ai-no-image.html` | Same app, photo removed |
+| `foodpick-ai-no-image.html` | Same app, photo removed. Generated, not committed — see **Two variants** above |
+| `scripts/build-no-image.mjs` | Generates `foodpick-ai-no-image.html` from `foodpick-ai.html` |
+| `scripts/ship.sh` | One command: run the test suites, commit, push |
 | `BRANDING.md` | Identity, color, type, voice, and layout reference |
 | `supabase/functions/chat-craving/index.ts` | Serverless function proxying chat to the Anthropic API |
 | `tests/pipeline.test.mjs` | Sweeps the answer space against the dish filter pipeline |
 | `tests/craving-analysis.test.mjs` | Sweeps the answer space against the craving-analysis layer (profile, match %, alternates) |
 | `tests/dish-photos.test.mjs` | Checks every dish's pinned photo URL is a live image (needs real network access) |
+| `tests/extract.mjs` | Shared HTML-extraction helper the three test files above import instead of each re-implementing it |
 | `.github/workflows/preview.yml` | Manual (`workflow_dispatch`) test + Pages preview deploy |
 | `HANDOFF.md` | Design history, scoring rationale, and open items |
 
@@ -94,6 +104,20 @@ a network-sandboxed environment (that's expected, not a bug in the test).
 It's wired into `preview.yml` as non-blocking (`continue-on-error`), since a
 dead photo link already falls back to the dish's emoji rather than breaking
 anything.
+
+## Shipping a change
+
+```bash
+scripts/ship.sh "commit message here"
+```
+
+Runs `pipeline.test.mjs` and `craving-analysis.test.mjs` (both must pass),
+commits everything currently staged plus tracked changes, and pushes to the
+current branch. It does not run `dish-photos.test.mjs` (needs real network,
+see above) or dispatch a deploy — trigger `preview.yml` separately once
+you're ready to publish. Equivalent to the manual sequence this replaces: run
+both required test suites, `git add`, `git commit`, `git push -u origin
+<branch>`.
 
 ## Enabling chat
 
