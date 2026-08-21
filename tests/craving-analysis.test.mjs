@@ -117,6 +117,15 @@ function checkAnalysis(sandbox, label) {
     failures.push(`${ctx}: winner "${winner && winner.name}" is not a real dish`);
   }
 
+  // Regression check: the archetype headline names a cuisine (e.g. "Italian
+  // Comfort Seeker") that must match the dish actually being recommended --
+  // it previously came from the top 5 *scored* dishes' dominant cuisine
+  // instead of the winner's own, so the headline could name a different
+  // cuisine than the dish shown right underneath it.
+  if (winner && !profile.archetype.startsWith(winner.cuisine)) {
+    failures.push(`${ctx}: archetype "${profile.archetype}" doesn't start with winner's cuisine "${winner.cuisine}"`);
+  }
+
   if (!Number.isInteger(profile.matchPct) || profile.matchPct < 72 || profile.matchPct > 97) {
     failures.push(`${ctx}: matchPct out of band: ${profile.matchPct}`);
   }

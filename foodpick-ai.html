@@ -168,13 +168,6 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 
 .q-label { color: var(--accent); font-size: 10.5px; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; }
-.q-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.q-label-row .q-label { margin-bottom: 0; }
-.quiz-back-btn {
-  border: none; background: none; color: var(--muted); font-size: 12px; font-weight: 600;
-  cursor: pointer; padding: 2px 0; display: none; align-items: center; gap: 3px;
-}
-.quiz-back-btn:hover { color: var(--accent); }
 .q-text { font-family: 'Fraunces', serif; font-weight: 400; font-size: 19px; line-height: 1.35; margin-bottom: 20px; }
 
 .options { display: grid; gap: 9px; overflow-y: auto; }
@@ -305,8 +298,6 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .history-item .hi-main { font-weight: 500; font-family: 'Fraunces'; }
 .history-item .hi-sub { color: var(--muted); font-size: 11px; }
 .history-summary { font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 12px; }
-.live-count { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 8px; min-height: 14px; }
-.live-count.zero { color: var(--accent); }
 
 .history-insight {
   background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
@@ -368,16 +359,13 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
     </div>
 
     <div class="screen" id="quiz">
-      <div class="q-label-row">
-        <button class="quiz-back-btn" id="quizBackBtn">← Back</button>
-        <div class="q-label" id="qLabel"></div>
-      </div>
+      <div class="q-label" id="qLabel"></div>
       <div class="q-text" id="qText"></div>
       <div class="options" id="qOptions"></div>
-      <div class="live-count" id="liveCount"></div>
       <div class="continue-row" id="continueRow" style="display:none;">
         <button class="btn" id="continueBtn">CONTINUE</button>
       </div>
+      <button class="btn secondary" id="quizBackBtn" style="width:100%; margin-top:10px; display:none;">← BACK</button>
     </div>
 
     <div class="screen" id="loading">
@@ -954,7 +942,7 @@ function renderQuestion() {
   qLabel.textContent = `Question ${qIndex + 1} of ${questions.length}`;
   qText.textContent = headerText(q);
   qOptions.innerHTML = '';
-  document.getElementById('quizBackBtn').style.display = answerStack.length ? 'inline-flex' : 'none';
+  document.getElementById('quizBackBtn').style.display = answerStack.length ? 'block' : 'none';
   updateProgress();
 
   if (q.type === 'single') {
@@ -969,8 +957,6 @@ function renderQuestion() {
   } else if (q.type === 'multi') {
     multiSelected = [];
     continueRow.style.display = 'block';
-    document.getElementById('liveCount').textContent = '';
-    document.getElementById('liveCount').classList.remove('zero');
     q.options.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'opt';
@@ -1022,7 +1008,6 @@ function toggleMulti(btn, opt) {
     document.querySelectorAll('#qOptions .opt').forEach(b => b.classList.remove('checked'));
     btn.classList.add('checked');
     multiSelected = ['none'];
-    updateDietaryLiveCount();
     return;
   }
   multiSelected = multiSelected.filter(v => v !== 'none');
@@ -1032,36 +1017,6 @@ function toggleMulti(btn, opt) {
   const idx = multiSelected.indexOf(opt.value);
   if (idx >= 0) { multiSelected.splice(idx, 1); btn.classList.remove('checked'); }
   else { multiSelected.push(opt.value); btn.classList.add('checked'); }
-  updateDietaryLiveCount();
-}
-
-// Only the dietary question's checkboxes get live feedback -- it's the one
-// hard filter answered before the result, so it's the one place "you're
-// about to over-filter" is worth surfacing before the quiz ends. Reuses
-// getEligiblePool()/passesDietary() directly (against dietaryFilters set
-// live from the in-progress selection) rather than a second copy of the
-// same filtering logic, so this can't drift from what the pipeline actually
-// does at the end.
-function updateDietaryLiveCount() {
-  const q = questions[qIndex];
-  const label = document.getElementById('liveCount');
-  if (!q || q.id !== 'dietary') return;
-  const selected = multiSelected.filter(v => v !== 'none');
-  if (selected.length === 0) {
-    label.textContent = '';
-    label.classList.remove('zero');
-    return;
-  }
-  dietaryFilters = selected;
-  const count = getEligiblePool().length;
-  dietaryFilters = []; // restore -- committed for real by continueBtn.onclick, not here
-  if (count === 0) {
-    label.textContent = "No dishes match all of these — we'll loosen the filter rather than show you nothing";
-    label.classList.add('zero');
-  } else {
-    label.textContent = `${count} dish${count === 1 ? '' : 'es'} still match${count === 1 ? 'es' : ''}`;
-    label.classList.remove('zero');
-  }
 }
 
 continueBtn.onclick = () => {
@@ -1252,7 +1207,13 @@ function buildCravingProfile(winner, scored) {
   const rankedCuisines = Object.entries(cuisineCount).sort((a, b) => b[1] - a[1]).map(([c]) => c);
   const direction = rankedCuisines.slice(0, 2).join(' / ') || winner.cuisine;
 
-  const archetype = `${rankedCuisines[0] || winner.cuisine} ${pickMoodWord()}`;
+  // Was rankedCuisines[0] -- the dominant cuisine among the top 5 *scored*
+  // dishes, which can legitimately differ from the dish pickDish() actually
+  // returns (it breaks ties among near-equal scores at random). That let the
+  // headline read e.g. "Italian Comfort Seeker" while the recommendation
+  // underneath was an Indian dish. The archetype is a description of what
+  // you're getting, so it has to name the winner's own cuisine.
+  const archetype = `${winner.cuisine} ${pickMoodWord()}`;
 
   // Match %: grounded in how much of the winning dish's own tags the answers actually hit,
   // kept in a believable 72-97 band rather than a raw ratio that could read as 20% or 100%.

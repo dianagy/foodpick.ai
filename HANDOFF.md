@@ -1275,3 +1275,47 @@ control (the very first, uncontrolled load is never cacheable, standard SW
 behavior) plus a second online reload to populate the cache — a third,
 fully offline reload still renders the real page (title, start button) with
 no navigation failure.
+
+## 28. Real bug: archetype could name a different cuisine than the recommended dish
+
+Reported directly from testing on the live deploy: the Craving Profile
+screen read "Italian Comfort Seeker" with Indian food as the actual
+recommendation right underneath it.
+
+**Root cause:** `buildCravingProfile()`'s `archetype` was built from
+`rankedCuisines[0]` — the dominant cuisine among the top 5 *scored*
+dishes — not from `winner` (the dish `pickDish()` actually returned).
+`pickDish()` breaks ties among near-equal scores at random, so whenever the
+top 5 candidates leaned one cuisine but the random tie-break landed on a
+different one, the headline and the dish underneath it disagreed. Confirmed
+this wasn't a rare edge case: reverting the fix and re-running the
+3,000-trial sweep produced dozens of mismatches in the first 150 trials
+alone (`"American Indulgence Seeker"` / winner `Thai`, `"Italian
+Indulgence Seeker"` / winner `Korean`, etc.) — this was happening on a
+large share of real runs, not a one-off.
+
+**Fix:** `archetype` now uses `winner.cuisine` directly. The separate
+🌍 "Direction" attribute card still uses the broader `rankedCuisines`
+(top 2, joined "X / Y") — that's a supporting detail about the general
+lean among close alternatives, not a claim about what dish you're getting,
+so it's fine for it to differ from the winner; only the headline archetype
+needed to be anchored to the winner.
+
+**Regression coverage added:** `craving-analysis.test.mjs` now asserts
+`profile.archetype.startsWith(winner.cuisine)` on every trial. Verified the
+assertion is not tautological by temporarily reverting the fix and
+confirming the sweep fails immediately with exactly this mismatch, then
+restoring the fix and confirming a clean pass.
+
+## 29. Quiz UI adjustments from live testing
+
+Two more changes from the same round of feedback:
+
+- **Back button moved to the bottom of the question, and restyled.** It
+  was a small text link next to the question counter at the top — easy to
+  miss. Now a full-width `.btn.secondary` below the options/Continue
+  button, matching the visual weight of the rest of the app's buttons.
+- **Live dietary-filter feedback ("N dishes still match") removed
+  entirely** (added in section 24) — didn't land well in testing. Removed
+  the markup, CSS, and `updateDietaryLiveCount()` function outright rather
+  than just hiding it, since there's no plan to bring it back in this form.
