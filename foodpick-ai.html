@@ -405,6 +405,9 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
         <a class="btn" id="findBtn" target="_blank" rel="noopener">📍 FIND THIS NEAR ME</a>
         <button class="btn secondary" id="logBtn">✅ I ORDERED THIS</button>
       </div>
+      <div class="result-actions">
+        <button class="btn small secondary" id="shareBtn" style="flex:1;">📤 SHARE MY RESULT</button>
+      </div>
       <div class="log-form" id="logForm">
         <input type="text" id="restaurantInput" placeholder="Where'd you order from? (optional)">
         <button class="btn small" id="saveLogBtn">SAVE TO HISTORY</button>
@@ -1498,6 +1501,38 @@ document.getElementById('saveLogBtn').onclick = () => {
   document.getElementById('savedNote').style.display = 'block';
   document.getElementById('logBtn').disabled = true;
   document.getElementById('logBtn').textContent = 'SAVED ✓';
+};
+
+/* ---------- SHARE (Web Share API, clipboard fallback) ---------- */
+function buildShareText() {
+  const dish = currentResultDish;
+  if (!dish) return '';
+  // Only the quiz path has an archetype/match% to brag about; pendingAnalysis
+  // stays set to the last quiz run even after visiting chat, so confirm its
+  // winner is actually this dish before using it.
+  if (pendingAnalysis && pendingAnalysis.winner === dish) {
+    const { archetype, matchPct } = pendingAnalysis.profile;
+    return `I'm a ${archetype} (${matchPct}% match) and foodpick.ai says I want ${dish.emoji} ${dish.name} right now.`;
+  }
+  return `foodpick.ai says I want ${dish.emoji} ${dish.name} right now.`;
+}
+
+document.getElementById('shareBtn').onclick = async () => {
+  if (!currentResultDish) return;
+  const text = buildShareText();
+  const url = location.href.split('#')[0].split('?')[0];
+  const btn = document.getElementById('shareBtn');
+
+  if (navigator.share) {
+    try { await navigator.share({ text, url }); } catch (e) { /* user cancelled the share sheet */ }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    const original = btn.textContent;
+    btn.textContent = 'COPIED ✓';
+    setTimeout(() => { btn.textContent = original; }, 1800);
+  } catch (e) { /* clipboard unavailable (e.g. insecure context) -- nothing more to do */ }
 };
 
 historyBadge.onclick = () => { renderHistoryScreen(); showScreen('history'); };

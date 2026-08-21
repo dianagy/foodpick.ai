@@ -1170,3 +1170,24 @@ behavior of falling back to the unfiltered pool rather than ever handing
 back nothing. Verified via Playwright screenshots stepping through the
 quiz to the dietary question and toggling combinations (vegetarian: 39→X,
 +vegan, +nut-free).
+
+## 25. Share mechanic on the result screen
+
+This reads like a personality-quiz result (archetype + match % + "why this
+matches") but had no way to actually share it — a classic engagement lever
+for exactly this format, previously missing entirely. Added a "📤 SHARE MY
+RESULT" button below the existing result actions.
+
+Uses the Web Share API (`navigator.share`) where available — the native
+share sheet on mobile — falling back to `navigator.clipboard.writeText`
+with a "COPIED ✓" confirmation (same pattern as the existing "SAVED ✓" on
+`logBtn`) where it isn't. Share text includes the archetype and match % on
+the quiz path (`"I'm a Brunch Comfort Seeker (72% match) and foodpick.ai
+says I want 🥑 Avocado Toast right now."`), falling back to a dish-only
+line on the chat path, which has no archetype/match % to reference —
+determined by checking `pendingAnalysis.winner === currentResultDish`
+rather than just "does `pendingAnalysis` exist," since it stays set to the
+last quiz run's result even after a visit to chat. Verified end-to-end
+with Playwright (clipboard permissions granted, `navigator.share` absent
+in headless Chromium as expected): clicking the button produced the exact
+expected archetype/match%/dish/URL text on the clipboard.
