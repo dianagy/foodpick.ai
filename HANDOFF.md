@@ -1097,3 +1097,40 @@ origin <current-branch>`. Deliberately does not run
 `tests/dish-photos.test.mjs` (needs real network the dev machine may not
 have) or dispatch `preview.yml` (deploy stays a separate, explicit step per
 the auto-deploy decision above).
+
+## 22. Dark mode
+
+Single light palette only, previously — CSS custom properties were already
+centralized in `:root` (9 variables: `--bg`, `--card`, `--ink`, `--muted`,
+`--accent`, `--pill-bg`, `--pill-text`, `--rule`, `--border`), so adding a
+dark variant was additive rather than a rewrite, as flagged in the earlier
+UI/UX brainstorm.
+
+**Two trigger paths, manual always wins.** A dark palette is defined twice:
+once under `@media (prefers-color-scheme: dark)` (guarded by
+`:root:not([data-theme="light"])` so an explicit "light" pick can override
+the OS setting), and again under `:root[data-theme="dark"]` (so an explicit
+"dark" pick applies regardless of OS setting). A 🌙/☀️ toggle button
+(fixed top-right, visible on every screen) sets `data-theme` on
+`<html>` and persists the choice to `localStorage` (`foodpick_theme`); a
+`matchMedia` change listener keeps following the OS setting live for anyone
+who hasn't touched the toggle. `<meta name="theme-color">` updates to match,
+so the browser chrome (address bar on mobile) follows too.
+
+**Flash-of-wrong-theme avoided** by a tiny inline `<script>` placed directly
+in `<head>` (before any CSS renders) that reads the stored preference or OS
+setting and sets `data-theme` synchronously — the main theme logic (button
+icon, `matchMedia` listener, meta tag sync) runs later, in the regular
+bottom-of-body script, once those DOM elements exist.
+
+**Found and fixed real light-mode leakage while wiring this up:** eight
+places hard-coded `background: #fff` instead of `background: var(--card)`
+(chat bubbles, profile-attr cards, dietary/settings inputs, the receipt
+card) — harmless in light mode since `--card` was already `#ffffff`, but
+would have stayed white in dark mode, breaking every one of those elements.
+Also one inline SVG (`stroke="#3A3339"` on the marquee's smile icon) fixed
+to `stroke="currentColor"`, which resolves through the existing `color:
+var(--ink)` inheritance from `body`. Verified by walking the full flow
+(start → quiz → craving profile → result, including the receipt card,
+tag pills, alternates, and map-fallback text) as screenshots under a
+simulated dark OS preference — no white leaks anywhere in the flow.

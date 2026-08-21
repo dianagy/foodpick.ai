@@ -9,6 +9,19 @@
 <meta name="theme-color" content="#FBF6F0">
 <meta name="description" content="The last 'idk what to eat' you'll ever type. A quick quiz or a quick chat — either way you land on a takeout order.">
 <title>foodpick.ai</title>
+<script>
+// Runs before first paint so there's no flash of the wrong theme. The full
+// toggle button / meta theme-color sync happens later in the main script,
+// once the DOM it depends on exists.
+(function() {
+  try {
+    var stored = localStorage.getItem('foodpick_theme');
+    var theme = (stored === 'light' || stored === 'dark') ? stored :
+      (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -26,8 +39,46 @@
   --border: #E3D5C9;
 }
 
+/* Dark palette: mirrors the light one above so the two never drift.
+   Defined twice on purpose -- once for the OS-level preference (skipped
+   when the user has explicitly picked "light" via the toggle), once for
+   the toggle's own explicit "dark" choice -- so the manual pick always
+   wins over the system setting either direction. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #221D1F;
+    --card: #2E2629;
+    --ink: #F3EAE3;
+    --muted: #B8A99D;
+    --accent: #E08F72;
+    --pill-bg: #4A2E27;
+    --pill-text: #F0B7A0;
+    --rule: #3D3336;
+    --border: #4A3F3F;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #221D1F;
+  --card: #2E2629;
+  --ink: #F3EAE3;
+  --muted: #B8A99D;
+  --accent: #E08F72;
+  --pill-bg: #4A2E27;
+  --pill-text: #F0B7A0;
+  --rule: #3D3336;
+  --border: #4A3F3F;
+}
+
 html, body { min-height: 100%; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--ink); overflow-x: hidden; }
 body { display: flex; align-items: center; justify-content: center; padding: 32px 16px; position: relative; }
+
+.theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 10;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border); color: var(--ink);
+  font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+}
 
 .wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; }
 
@@ -70,7 +121,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .or-divider span { color: var(--muted); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; }
 
 .chat-entry-btn {
-  width: 100%; background: #fff; border: 1px solid var(--border);
+  width: 100%; background: var(--card); border: 1px solid var(--border);
   border-radius: 999px; padding: 13px 16px; cursor: pointer; color: var(--ink);
   font-family: 'Inter'; font-weight: 500; font-size: 13px; transition: all 0.15s ease;
 }
@@ -84,7 +135,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; min-height: 240px; }
 .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.45; animation: fadeSlide 0.25s ease; }
 .chat-bubble.user { align-self: flex-end; background: var(--ink); color: var(--bg); font-weight: 400; border-bottom-right-radius: 4px; }
-.chat-bubble.assistant { align-self: flex-start; background: #fff; border: 1px solid var(--rule); border-bottom-left-radius: 4px; }
+.chat-bubble.assistant { align-self: flex-start; background: var(--card); border: 1px solid var(--rule); border-bottom-left-radius: 4px; }
 .chat-bubble.typing { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
 .chat-bubble.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typingBounce 1.2s infinite ease-in-out; }
 .chat-bubble.typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -93,7 +144,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
 .chat-input-row input {
   flex: 1; padding: 12px 16px; border-radius: 999px; border: 1px solid var(--border);
-  background: #fff; color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
+  background: var(--card); color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
 }
 .chat-input-row input::placeholder { color: var(--muted); }
 .chat-send-btn {
@@ -118,7 +169,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 
 .options { display: grid; gap: 9px; overflow-y: auto; }
 .opt {
-  display: flex; align-items: center; gap: 12px; text-align: left; background: #fff;
+  display: flex; align-items: center; gap: 12px; text-align: left; background: var(--card);
   border: 1px solid var(--rule); border-radius: 14px; padding: 12px 15px; color: var(--ink);
   font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 400; cursor: pointer; transition: all 0.15s ease;
 }
@@ -145,7 +196,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .profile-summary { font-size: 13.5px; line-height: 1.6; color: var(--ink); margin-bottom: 20px; }
 .profile-section-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }
 .profile-attrs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
-.profile-attr { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; }
+.profile-attr { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; }
 .profile-attr .pa-icon { font-size: 17px; flex-shrink: 0; }
 .profile-attr .pa-label { font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
 .profile-attr .pa-value { font-size: 13px; color: var(--ink); font-weight: 500; }
@@ -185,7 +236,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .alt-section { width: 100%; margin-top: 16px; }
 .alt-label { color: var(--accent); font-size: 10px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
 .alt-item {
-  background: #fff; border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
   margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s ease;
 }
 .alt-item:hover, .alt-item.expanded { border-color: var(--accent); }
@@ -229,7 +280,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .log-form.show { display: flex; }
 .log-form input {
   width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
-  background: #fff; color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
+  background: var(--card); color: var(--ink); font-family: 'Inter'; font-size: 13.5px;
 }
 .log-form input::placeholder { color: var(--muted); }
 .saved-note { font-size: 12px; color: var(--accent); text-align: center; margin-top: 8px; }
@@ -238,7 +289,7 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .history-empty { text-align: center; color: var(--muted); font-size: 13px; margin: auto; }
 .history-item {
-  background: #fff; border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
   padding: 10px 14px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
 }
 .history-item .hi-main { font-weight: 500; font-family: 'Fraunces'; }
@@ -252,10 +303,11 @@ body { display: flex; align-items: center; justify-content: center; padding: 32p
 </style>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
 <div class="wrap">
   <div class="marquee">
     <div class="marquee-top">
-      <div class="mark-icon"><svg viewBox="0 0 32 32"><path d="M6,14 Q16,26 26,14" fill="none" stroke="#3A3339" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="6" x2="16" y2="11" stroke="#3A3339" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+      <div class="mark-icon"><svg viewBox="0 0 32 32"><path d="M6,14 Q16,26 26,14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="16" y1="6" x2="16" y2="11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
       <h1>foodpick<span>.ai</span></h1>
     </div>
     <div class="marquee-mid">
@@ -1499,6 +1551,45 @@ chatSendBtn.onclick = sendChatMessage;
 chatInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') sendChatMessage();
 });
+
+/* ---------- THEME (light/dark, follows OS by default) ---------- */
+const THEME_KEY = 'foodpick_theme';
+const themeToggle = document.getElementById('themeToggle');
+
+function systemPrefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function effectiveTheme() {
+  let stored = null;
+  try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+  if (stored === 'light' || stored === 'dark') return stored;
+  return systemPrefersDark() ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#221D1F' : '#FBF6F0');
+}
+
+themeToggle.onclick = () => {
+  const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyTheme(next);
+};
+
+if (window.matchMedia) {
+  // Only follow a live OS-theme change if the user hasn't picked one explicitly.
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    let stored = null;
+    try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+    if (stored !== 'light' && stored !== 'dark') applyTheme(effectiveTheme());
+  });
+}
+
+applyTheme(effectiveTheme());
 
 /* ---------- INIT ---------- */
 loadHistory();
