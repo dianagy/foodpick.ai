@@ -36,16 +36,49 @@ const failures = [];
 // asks for something identifying the app: https://meta.wikimedia.org/wiki/User-Agent_policy
 const USER_AGENT = 'foodpick.ai-dish-photo-check/1.0 (https://github.com/dianagy/foodpick.ai)';
 
+// If the /thumb/ URL fails, derive the full-size original
+// (".../commons/<hash>/<file>") and try that instead -- diagnostic for
+// whether the failure is specific to the thumbnail transform or something
+// broader (e.g. every upload.wikimedia.org request failing regardless of
+// path shape).
+function toFullSize(thumbUrl) {
+  const marker = '/wikipedia/commons/thumb/';
+  const idx = thumbUrl.indexOf(marker);
+  if (idx === -1) return null;
+  const rest = thumbUrl.slice(idx + marker.length); // <h1>/<h2>/<file>/<width>px-<file>
+  const parts = rest.split('/');
+  if (parts.length < 3) return null;
+  const [h1, h2, file] = parts;
+  return `https://upload.wikimedia.org/wikipedia/commons/${h1}/${h2}/${file}`;
+}
+
+async function fetchOnce(url) {
+  const res = await fetch(url, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
+  await res.arrayBuffer().catch(() => {});
+  return res;
+}
+
 async function checkOne(dish) {
   let res;
   try {
-    res = await fetch(dish.photo, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
+    res = await fetchOnce(dish.photo);
   } catch (e) {
     failures.push(`${dish.name}: fetch failed -- ${e.message} (${dish.photo})`);
     return;
   }
+
   if (!res.ok) {
-    failures.push(`${dish.name}: HTTP ${res.status} (${dish.photo})`);
+    const fullSize = toFullSize(dish.photo);
+    if (fullSize) {
+      try {
+        const res2 = await fetchOnce(fullSize);
+        failures.push(`${dish.name}: thumb HTTP ${res.status} (${dish.photo}) -- full-size fallback HTTP ${res2.status} (${fullSize})`);
+      } catch (e2) {
+        failures.push(`${dish.name}: thumb HTTP ${res.status} (${dish.photo}) -- full-size fallback fetch failed: ${e2.message} (${fullSize})`);
+      }
+    } else {
+      failures.push(`${dish.name}: HTTP ${res.status} (${dish.photo})`);
+    }
     return;
   }
   const contentType = res.headers.get('content-type') || '';
@@ -57,8 +90,6 @@ async function checkOne(dish) {
   if (len > 0 && len < 1024) {
     failures.push(`${dish.name}: suspiciously small response (${len} bytes) -- likely a placeholder/error image (${dish.photo})`);
   }
-  // Drain the body so the connection can close cleanly under concurrency.
-  await res.arrayBuffer().catch(() => {});
 }
 
 // A handful of concurrent requests -- fast, and polite to Wikimedia.
